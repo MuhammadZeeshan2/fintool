@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="content-overlay"></div>
+<div class="header-navbar-shadow"></div>
+<div class="content-wrapper">
+    <div class="content-header row">
+        <div class="content-header-left col-12">
+            <div class="row breadcrumbs-top">
+                <div class="col-12">
+                    <h2 class="content-header-title float-left">Complete Project: {{ project.name }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="content-body">
+        <section class="page-users-view">
+            <div class="row">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h4 class="card-title">Complete Project: {{ project.name }}</h4>
+                        </div>
+                        <div class="card-content">
+                            <div class="card-body">
+                                <form method="POST" action="{% url 'project-complete' project.id %}">
+                                    {% csrf_token %}
+                                    
+                                    <!-- Annotation Method Selection -->
+                                    <div class="form-group">
+                                        <label for="annotation-method">Select Annotation Method:</label>
+                                        <select name="annotation_method" class="form-control">
+                                            <option value="rectangle">Rectangle</option>
+                                            <option value="polygon">Polygon</option>
+                                        </select>
+                                    </div>
+
+                                    <!-- Notes Section -->
+                                    <div class="form-group">
+                                        <label for="notes">Notes/Instructions:</label>
+                                        <textarea name="notes" class="form-control" rows="4" placeholder="Add any notes or instructions for the labeling/reviewing process."></textarea>
+                                    </div>
+
+                                    <!-- Labels Section for the Project -->
+                                    <div class="form-group">
+                                        <label for="project_labels">Project Labels:</label>
+                                        <div class="input-fields">
+                                            <div class="form-group">
+                                                <label for="label_1">Label 1</label>
+                                                <input type="text" class="form-control" name="label_1" placeholder="Enter label 1">
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="label_2">Label 2</label>
+                                                <input type="text" class="form-control" name="label_2" placeholder="Enter label 2">
+                                            </div>
+                                            <!-- Add more label fields as needed, or use JavaScript to dynamically add them -->
+                                        </div>
+                                    </div>
+
+                                    <!-- Image Selection Section -->
+                                    <div class="form-group">
+                                        <h5>Select Images (Cleaned Only):</h5>
+                                        <div class="row">
+                                            {% for image in library_images %}
+                                            <div class="col-md-2 text-center">
+                                                <label>
+                                                    <!-- Checkbox for selecting image -->
+                                                    <input type="checkbox" name="selected_images" value="{{ image.id }}">
+
+                                                    <!-- Display image -->
+                                                    <img src="{{ image.media_file.url }}" alt="{{ image.media_file.name }}" class="img-fluid mb-1" style="max-width: 100%; height: auto;">
+
+                                                    <!-- Image Name -->
+                                                    <p>{{ image.media_file.name|cut:'.jpeg'|cut:'.png'|cut:'.jpg' }}</p>
+                                                </label>
+                                            </div>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+
+                                    <!-- Submit Button -->
+                                    <div class="form-group text-center">
+                                        <button type="submit" class="btn btn-primary">Complete Project</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+</div>
+
+<script>
+    // Optional: JavaScript to add more labels dynamically if needed
+</script>
+{% endblock %}

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Date Adjust Panel</title>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+  <style>
+    body {
+      background-color: #f8f9fa;
+    }
+    
+    .form-box {
+      max-width: 400px;
+      margin: 0 auto;
+      padding: 20px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      background-color: #fff;
+      margin-top: 100px;
+    }
+    
+    .red-text {
+      color: red;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <nav class="navbar navbar-dark bg-primary">
+      <span class="navbar-brand mb-0 h1">Date Adjust Panel</span>
+      <div>
+        <span class="text-light mr-3">Logged User: {{request.user.username}}</span>
+        <a class="btn btn-light" href="{% url 'logout' %}">Log Out</a>
+      </div>
+    </nav>
+  </header>
+  
+  <div class="container">
+    {% include 'alert.html' %}
+    <div class="row">
+      <div class="col-md-12">
+        <div class="form-box">
+          {% if last_date %}
+            <p class="red-text">Last InActivation Date: {{last_date.date|date:"F j, Y"}}</p>
+          {% endif %}
+          <form method="post">
+            {% csrf_token %}
+            <div class="form-group">
+              <label for="activationDate">System Activation Until</label>
+              <input type="date" class="form-control" required id="date" name="date" placeholder="Select date">
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">Submit</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+</body>
+</html>

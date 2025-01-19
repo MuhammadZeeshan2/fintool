@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <title>DREgine: medicDX</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Bootstrap core CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    
+    <style>
+      /* Add custom styles here */
+      body {
+        margin: 0;
+        padding: 0;
+        font-family: Arial, sans-serif;
+        background-color: #f5f5f5;
+      }
+      .container-fluid {
+        max-width: 1500px;
+        margin: 20px auto;
+      }
+      .bg-light {
+        background-color: #fff;
+        box-shadow: 0 2px 0 rgba(0,0,0,0.05);
+        border-radius: 5px;
+        padding: 20px;
+        height: calc(100vh - 52px);
+      }
+      .bg-dark {
+        background-color: #333;
+        box-shadow: 0 2px 0 rgba(0,0,0,0.05);
+        border-radius: 5px;
+        padding: 20px;
+        height: auto;
+      }
+      .image-wrap {
+        background-color: #fff;
+        width: 800px;
+        height: 700px;
+        overflow: hidden;
+        margin: 0 auto;
+      }
+      .image-wrap img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        transform-origin: top left;
+        transition: all 0.2s ease-out;
+      }
+      .edit-tools {
+        margin: 40px 0;
+      }
+      .edit-tools h3 {
+        color: #555;
+      }
+      .edit-tools ul {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+      }
+      .selected-tool {
+        background-color: #7567f0 !important;
+        color: #fff !important;
+      }
+      .undo-buttons {
+        position: absolute;
+        left: 20px;
+        bottom: 20px;
+      }
+      /* Style the button in toolbar */
+      .btn-edit {
+        background-color: #f7f7f7;
+        color: #666;
+        font-size: 16px;
+        padding: 10px 20px;
+        margin: 10px;
+        border-radius: 20px;
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+      .btn-edit:hover {
+        background-color: #9085f1;
+        color: #fff;
+      }
+      button:disabled,
+      button[disabled]{
+        border: 1px solid #999999;
+        background-color: #cccccc;
+        color: #666666;
+      }
+      .zoom-buttons {
+        position: absolute;
+        right: 20px;
+        bottom: 20px;
+      }
+      @media (max-width: 767px) {
+        .edit-tools ul {
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .undo-buttons, .zoom-buttons {
+          position: relative;
+          left: auto;
+          bottom: auto;
+        }
+        .undo-buttons {
+          margin-top: 20px;
+        }
+        .zoom-buttons {
+          margin-bottom: 20px;
+        }
+      }
+      .switch {
+        position: relative;
+        display: inline-block;
+        width: 60px;
+        height: 34px;
+      }
+      .switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+      }
+      .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #f7f7f7;
+        transition: .4s;
+        border: 1px solid #ddd;
+      }
+      .slider:before {
+        position: absolute;
+        content: "";
+        height: 26px;
+        width: 26px;
+        left: 4px;
+        bottom: 4px;
+        background-color: #666;
+        transition: .4s;
+      }
+      input:checked + .slider {
+        background-color: #9085f1;
+      }
+      input:focus + .slider {
+        box-shadow: 0 0 1px #9085f1;
+      }
+      input:checked + .slider:before {
+        transform: translateX(26px);
+      }
+      /* Rounded sliders */
+      .slider.round {
+        border-radius: 34px;
+      }
+      .slider.round:before {
+        border-radius: 50%;
+      }
+      .custom-switch {
+        display: flex;
+        position: absolute;
+        align-items: center;
+        width: 160px; /* adjust as necessary */
+        padding-left: 0;
+      }
+
+      .switch-label {
+        font-size: 16px;
+        color: #cccccc;
+      }
+
+    </style>
+  </head>
+  <body>
+        
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-lg-2 col-md-3 col-sm-5 bg-light">
+          <div class="edit-tools">
+            <h3>Editing Tools</h3>
+            <ul>
+              <li><button class="btn-edit tool-button" id="btn-select"><i class="fas fa-image"></i> Select Image</button></li>
+              <li><button class="btn-edit tool-button" id="btn-select-element"><i class="fas fa-hand-pointer"></i> Select Element</button></li>
+              <li><button class="btn-edit tool-button" id="btn-line"><i class="fas fa-pencil-alt"></i> Draw Line</button></li>
+              <li><button class="btn-edit tool-button" id="btn-rectangle"><i class="fas fa-square-full"></i> Draw Rectangle</button></li>
+              <li><button class="btn-edit tool-button" id="btn-circle"><i class="fas fa-circle"></i> Draw Circle</button></li>
+              <li><button class="btn-edit tool-button" id="freeDraw"><i class="fas fa-draw-polygon"></i> Free Draw</button></li>
+              <li><button class="btn-edit tool-button" id="btn-fit-screen"><i class="fas fa-compress-arrows-alt"></i> Fit to Screen</button></li>
+              <li><label>Color Picker:</label></li>
+              <li><input type="color" id="color-picker" value="#000000"></li>
+            </ul>
+          </div>
+        </div>
+        <div class="col-lg-10 col-md-9 col-sm-7 bg-dark">
+          <div class="custom-switch">
+            <label class="switch-label" for="customSwitch">Hide Elements</label>
+            <label class="switch">
+              <input id="hide-elements" type="checkbox">
+              <span class="slider round"></span>
+            </label>
+          </div>
+
+          <div class="custom-switch" style="right: 20px;">
+            <div class="undo-buttonsa">
+              <button id="" class="btn-edit tool-button"><i class="fas fa-close" style="color:red"></i></button>
+              <button id="" class="btn-edit tool-button"><i class="fas fa-check"></i></button>
+            </div>
+          </div>
+          
+          <div class="undo-buttons">
+            <div class="undo-buttonsa">
+              <button id="btn-remove" class="btn-edit tool-button" disabled><i class="fas fa-trash" style="color:red"></i></button>
+              <button id="btn-edit-label" class="btn-edit tool-button" disabled><i class="fas fa-edit"></i></button>
+            </div>
+            <div class="undo-buttonsa">
+              <button class="btn-edit" id="undo"><i class="fas fa-undo"></i></button>
+              <button class="btn-edit" id="redo"><i class="fas fa-redo"></i></button>
+            </div>
+          </div>
+          <div class="zoom-buttons">
+            <button class="btn-edit" id="zoom-in"><i class="fas fa-plus"></i></button>
+            <button class="btn-edit" id="zoom-out"><i class="fas fa-minus"></i></button>
+          </div>
+          <div class="image-wrap">
+            <canvas id="image" width="800" height="700"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Bootstrap core JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.0/jquery.slim.min.js" integrity="sha512-5NqgLBAYtvRsyAzAvEBWhaW+NoB+vARl6QiA02AFMhCWvPpi7RWResDcTGYvQtzsHVCfiUhwvsijP+3ixUk1xw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.6.0/umd/popper.min.js" integrity="sha512-BmM0/BQlqh02wuK5Gz9yrbe7VyIVwOzD1o40yi1IsTjriX/NGF37NyXHfmFzIlMmoSIBXgqDiG1VNU6kB5dBbA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+    <!-- Font Awesome -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js" integrity="sha512-fD9DI5bZwQxOi7MhYWnnNPlvXdp/2Pj3XSTRrFs5FQa4mizyGLnJcN6tuvUS6LbmgN1ut+XGSABKvjN0H6Aoow==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script>
+      let zoomLevel = 1;
+      let drag = false;
+      let lastX = 0;
+      let lastY = 0;
+      let posX = 0;
+      let posY = 0;
+      let selectedTool = '';
+      let drawing = false;
+      let dragElement = false; // New variable to track if an element is being dragged
+      let dragOffset = { x: 0, y: 0 }; // New variable to store the mouse offset when starting to drag
+      let startX, startY;
+      let drawnElements = [];
+      let selectedElement = null;
+      let undoStack = [], redoStack = [];
+      let hideElements = false;
+
+      const zoomInButton = document.getElementById("zoom-in");
+      const zoomOutButton = document.getElementById("zoom-out");
+      const selectButton = document.getElementById("btn-select");
+      const drawLineButton = document.getElementById("btn-line");
+      const colorPicker = document.getElementById("color-picker");
+      const drawRectangleButton = document.getElementById("btn-rectangle");
+      const drawCircleButton = document.getElementById("btn-circle");
+      const drawFree = document.getElementById("freeDraw");
+      const selectElementButton = document.getElementById("btn-select-element");
+      const removeButton = document.getElementById("removeElement");
+      const hideElementsCheckbox = $("#hide-elements");
+      const canvas = document.getElementById("image");
+      const context = canvas.getContext('2d');
+      const fitScreenButton = document.getElementById("btn-fit-screen");
+
+      fitScreenButton.onclick = function () {
+          zoomLevel = 1;
+          posX = 0;
+          posY = 0;
+          redrawImage();
+      };
+
+
+      hideElementsCheckbox.change(function() {
+        console.log('clicked');
+        if (this.checked) {
+          hideElements = true;
+        } else {
+          hideElements = false;
+        }
+        redrawImage();
+      });
+
+      // Load the image
+      const img = new Image();
+      img.src = "https://iso.500px.com/wp-content/uploads/2016/03/stock-photo-142984111.jpg";
+      img.onload = function() {
+        drawImageScaled(img, context);
+      }
+
+      zoomInButton.onclick = function () {
+        zoomLevel += 0.1;
+        redrawImage();
+      };
+
+      zoomOutButton.onclick = function () {
+        zoomLevel -= 0.1;
+        if (zoomLevel < 0.1) {
+          zoomLevel = 0.1;  // prevent image from getting too small
+        }
+        redrawImage();
+      };
+
+      selectButton.onclick = function () {
+        clearAllSelections();
+        selectedTool = 'select';
+        setSelectedTool(selectButton);
+      };
+
+      drawLineButton.onclick = function () {
+        clearAllSelections();
+        selectedTool = 'drawLine';
+        setSelectedTool(drawLineButton);
+      };
+
+      drawRectangleButton.onclick = function () {
+        clearAllSelections();
+        selectedTool = 'drawRectangle';
+        setSelectedTool(drawRectangleButton);
+      };
+
+      drawCircleButton.onclick = function () {
+        clearAllSelections();
+        selectedTool = 'drawCircle';
+        setSelectedTool(drawCircleButton);
+      };
+
+      selectElementButton.onclick = function () {
+        clearAllSelections();
+        selectedTool = 'selectElement';
+        setSelectedTool(selectElementButton);
+      };
+
+      drawFree.onclick = function () {
+        clearAllSelections();
+        selectedTool = 'FreeDraw';
+        setSelectedTool(drawFree);
+      };
+
+      colorPicker.addEventListener('input', function() {
+        if (selectedElement) {
+          selectedElement.color = colorPicker.value;
+          redrawImage();
+          saveState();
+        }
+      }, false);
+
+      document.getElementById('undo').addEventListener('click', function() {
+        if (undoStack.length > 0) {
+          let currentState = JSON.parse(JSON.stringify(drawnElements));
+          
+          // Only push if the state is different from the top of the Redo stack
+          if (redoStack.length === 0 || JSON.stringify(redoStack[redoStack.length - 1]) !== JSON.stringify(currentState)) {
+            redoStack.push(currentState); // save current state in redo stack
+          }
+          
+          drawnElements = undoStack.pop(); // restore from undo stack
+          redrawImage();
+        }
+      });
+
+      document.getElementById('redo').addEventListener('click', function() {
+        if (redoStack.length > 0) {
+          let currentState = JSON.parse(JSON.stringify(drawnElements));
+
+          // Only push if the state is different from the top of the Undo stack
+          if (undoStack.length === 0 || JSON.stringify(undoStack[undoStack.length - 1]) !== JSON.stringify(currentState)) {
+            undoStack.push(currentState); // save current state in undo stack
+          }
+
+          drawnElements = redoStack.pop(); // restore from redo stack
+          redrawImage();
+        }
+      });
+      
+      function saveState() {
+        // Clone elements array
+        let currentState = JSON.parse(JSON.stringify(drawnElements));
+
+        // Only push if the state is different from the top of the Undo stack
+        if (undoStack.length === 0 || JSON.stringify(undoStack[undoStack.length - 1]) !== JSON.stringify(currentState)) {
+          undoStack.push(currentState);
+          redoStack = []; // clear redo stack
+        }
+      }
+
+      function clearAllSelections() {
+        drawnElements.forEach(element => {
+          element.selected = false;
+        });
+        document.getElementById('btn-remove').disabled = true;
+        document.getElementById('btn-edit-label').disabled = true;
+        selectedElement = null;
+        redrawImage();
+      }
+
+      function setSelectedTool(toolButton) {
+        // Clear existing selection
+        const toolButtons = document.querySelectorAll('.tool-button');
+        toolButtons.forEach(button => {
+          button.classList.remove('selected-tool');
+        });
+        // Set new selection
+        toolButton.classList.add('selected-tool');
+      }
+
+      canvas.addEventListener('mousedown', function(e) {
+        const rect = canvas.getBoundingClientRect();
+        const mouseX = (e.clientX - rect.left) / zoomLevel - posX;
+        const mouseY = (e.clientY - rect.top) / zoomLevel - posY;
+
+        if (selectedTool === 'select') {
+          const rect = canvas.getBoundingClientRect();
+          lastX = e.clientX - rect.left;
+          lastY = e.clientY - rect.top;
+          drag = true;
+        } else if (selectedTool === 'drawLine') {
+          startX = mouseX;
+          startY = mouseY;
+          drawing = true;
+        } else if (selectedTool === 'drawRectangle') {
+          startX = mouseX;
+          startY = mouseY;
+          drawing = true;
+        } else  if (selectedTool === 'drawCircle') {
+          startX = mouseX;
+          startY = mouseY;
+          drawing = true;
+        } else if (selectedTool === 'selectElement') {
+          // Deselect any currently selected element
+          drawnElements.forEach(elem => { elem.selected = false; });
+
+          // Select the top-most element under the mouse click
+          for (let i = drawnElements.length - 1; i >= 0; i--) {
+            let elem = drawnElements[i];
+            if (isWithinElement(mouseX, mouseY, elem)) {
+              elem.selected = true;
+              document.getElementById('btn-remove').disabled = false;  // Enable the remove button
+              document.getElementById('btn-edit-label').disabled = false;  // Enable the remove button
+
+              // Start dragging and store the offset
+              dragElement = true;
+              dragOffset = { x: mouseX - getCenter(elem).x, y: mouseY - getCenter(elem).y };
+              break;
+            }
+          }
+          redrawImage();
+          saveState();
+        } else if (selectedTool === 'FreeDraw') {
+          startX = mouseX;
+          startY = mouseY;
+          drawing = true;
+          drawnElements.push({
+            type: 'FreeDraw',
+            points: [{x: mouseX, y: mouseY}],
+            color: colorPicker.value,
+            startX: mouseX,
+            startY: mouseY,
+            endX: mouseX,
+            endY: mouseY
+          });
+        }
+      });
+
+      document.getElementById('btn-remove').addEventListener('click', function() {
+        // Find the selected element
+        for (let i = 0; i < drawnElements.length; i++) {
+          if (drawnElements[i].selected) {
+            // Remove the selected element
+            drawnElements.splice(i, 1);
+            break;
+          }
+        }
+        // Clear all selections and disable the remove button
+        clearAllSelections();
+      });
+
+      document.getElementById('btn-edit-label').addEventListener('click', function() {
+        // Find the selected element
+        for (let i = 0; i < drawnElements.length; i++) {
+          elem = drawnElements[i]
+          if (elem.selected) {
+            // Remove the selected element
+            elem.label = prompt("Please enter the label", elem.label);
+            break;
+          }
+        }
+        // Clear all selections and disable the remove button
+        redrawImage();
+        clearAllSelections();
+      });
+
+      function isWithinElement(mouseX, mouseY, element) {
+        if (element.type === 'rectangle') {
+          let startX = Math.min(element.startX, element.endX);
+          let endX = Math.max(element.startX, element.endX);
+          let startY = Math.min(element.startY, element.endY);
+          let endY = Math.max(element.startY, element.endY);
+          return mouseX > startX && mouseX < endX && mouseY > startY && mouseY < endY;
+        } else if (element.type === 'circle') {
+          let dx = mouseX - element.centerX;
+          let dy = mouseY - element.centerY;
+          return dx * dx + dy * dy <= element.radius * element.radius;
+        } else if (element.type === 'line') {
+          // This is a simplification, you may want to use a better distance-to-line-segment algorithm
+          return Math.abs((element.endY - element.startY) * mouseX - (element.endX - element.startX) * mouseY +
+                          element.endX * element.startY - element.endY * element.startX) /
+                Math.sqrt(Math.pow(element.endY - element.startY, 2) + Math.pow(element.endX - element.startX, 2)) < 5;
+        } else if (element.type === 'FreeDraw') {
+          // Compute the bounding box of the free drawn element
+          const xCoords = element.points.map(p => p.x);
+          const yCoords = element.points.map(p => p.y);
+          const boundingBox = {
+            startX: Math.min(...xCoords),
+            startY: Math.min(...yCoords),
+            width: Math.max(...xCoords) - Math.min(...xCoords),
+            height: Math.max(...yCoords) - Math.min(...yCoords),
+          };
+
+          // Check if the mouse is within the bounding box
+          return mouseX > boundingBox.startX && mouseX < boundingBox.startX + boundingBox.width &&
+                mouseY > boundingBox.startY && mouseY < boundingBox.startY + boundingBox.height;
+        }
+        return false;
+      }
+
+      canvas.addEventListener('mousemove', function(e) {
+        const rect = canvas.getBoundingClientRect();
+        const mouseX = (e.clientX - rect.left) / zoomLevel - posX;
+        const mouseY = (e.clientY - rect.top) / zoomLevel - posY;
+
+        if (dragElement==false && drawing==false && drag==false && hideElements==true) {
+          drawnElements.forEach(elem => {
+            let center = getCenter(elem);
+            var dx = mouseX - (center.x + posX);
+            var dy = mouseY - (center.y + posY);
+            var distance = Math.sqrt(dx * dx + dy * dy);
+            elem.hover = (distance < 10)
+            redrawImage();
+          });
+        }
+        if (drag && selectedTool === 'select') {
+          const rect = canvas.getBoundingClientRect();
+          const newX = e.clientX - rect.left;
+          const newY = e.clientY - rect.top;
+          posX += newX - lastX;
+          posY += newY - lastY;
+          lastX = newX;
+          lastY = newY;
+          redrawImage();
+          saveState();
+        } else if (drawing && selectedTool === 'drawLine') {
+          redrawImage();
+          saveState();
+          context.save();
+          context.scale(zoomLevel, zoomLevel);
+          context.translate(posX, posY);
+          context.beginPath();
+          context.moveTo(startX, startY);
+          context.lineTo(mouseX, mouseY);
+          context.strokeStyle = colorPicker.value;
+          context.stroke();
+          drawArrowhead(startX, startY, mouseX, mouseY, 10, colorPicker.value);
+          context.restore();
+        } else if (drawing && selectedTool === 'drawRectangle') {
+          redrawImage();
+          saveState();
+          context.save();
+          context.scale(zoomLevel, zoomLevel);
+          context.translate(posX, posY);
+          context.beginPath();
+          context.rect(startX, startY, mouseX - startX, mouseY - startY);
+          context.strokeStyle = colorPicker.value;
+          context.stroke();
+          context.restore();
+        } else if (drawing && selectedTool === 'drawCircle') {
+          redrawImage();
+          saveState();
+          context.save();
+          context.scale(zoomLevel, zoomLevel);
+          context.translate(posX, posY);
+          const radius = Math.sqrt(Math.pow(mouseX - startX, 2) + Math.pow(mouseY - startY, 2));
+          context.beginPath();
+          context.arc(startX, startY, radius, 0, 2 * Math.PI);
+          context.strokeStyle = colorPicker.value;
+          context.stroke();
+          context.restore();
+        } else if (dragElement && selectedTool === 'selectElement') {
+          // If an element is being dragged, adjust its position
+          selectedElement = drawnElements.find(elem => elem.selected);
+          let center = getCenter(selectedElement);
+          center.x = mouseX - dragOffset.x;
+          center.y = mouseY - dragOffset.y;
+          setCenter(selectedElement, center);
+          
+          // If the cursor is on the selected element, change the cursor to the move cursor
+          if (isWithinElement(mouseX, mouseY, selectedElement)) {
+            canvas.style.cursor = "move";
+          } else {
+            canvas.style.cursor = "default";
+          }
+          
+          redrawImage();
+        } else if (drawing && selectedTool === 'FreeDraw') {
+          const currentElement = drawnElements[drawnElements.length - 1];
+          currentElement.points.push({x: mouseX, y: mouseY});
+          currentElement.startX = Math.min(currentElement.startX, mouseX);
+          currentElement.startY = Math.min(currentElement.startY, mouseY);
+          currentElement.endX = Math.max(currentElement.endX, mouseX);
+          currentElement.endY = Math.max(currentElement.endY, mouseY);
+          redrawImage();
+        }
+      });
+
+      canvas.addEventListener('mouseup', function(e) {
+        const rect = canvas.getBoundingClientRect();
+        const mouseX = (e.clientX - rect.left) / zoomLevel - posX;
+        const mouseY = (e.clientY - rect.top) / zoomLevel - posY;
+
+        if (drag && selectedTool === 'select') {
+          drag = false;
+        } else if (drawing && selectedTool === 'drawLine') {
+          const label = prompt('What do you want to label this line?');
+          drawnElements.push({
+            type: 'line',
+            startX: startX,
+            startY: startY,
+            endX: mouseX,
+            endY: mouseY,
+            color: colorPicker.value,
+            label: label,
+          });
+          drawing = false;
+        } else if (drawing && selectedTool === 'drawRectangle') {
+          const label = prompt('What do you want to label this rectangle?');
+          drawnElements.push({
+            type: 'rectangle',
+            startX: startX,
+            startY: startY,
+            endX: mouseX,
+            endY: mouseY,
+            label: label,
+            color: colorPicker.value
+          });
+          drawing = false;
+        } else if (drawing && selectedTool === 'drawCircle') {
+          const label = prompt('What do you want to label this circle?');
+          const radius = Math.sqrt(Math.pow(mouseX - startX, 2) + Math.pow(mouseY - startY, 2));
+          drawnElements.push({
+            type: 'circle',
+            centerX: startX,
+            centerY: startY,
+            radius: radius,
+            label: label,
+            color: colorPicker.value
+          });
+          drawing = false;
+        } else if (dragElement && selectedTool === 'selectElement') {
+          dragElement = false;
+        } else if (drawing && selectedTool === 'FreeDraw') {
+          const label = prompt('What do you want to label this free drawn element?');
+          const currentElement = drawnElements[drawnElements.length - 1];
+          currentElement.label = label;
+          currentElement.hover = false;
+          drawing = false;
+        }
+        saveState();
+        redrawImage();
+      });
+
+      function getCenter(element) {
+        switch (element.type) {
+          case 'rectangle':
+            return {
+              x: (element.startX + element.endX) / 2,
+              y: (element.startY + element.endY) / 2
+            };
+          case 'circle':
+            return {
+              x: element.centerX,
+              y: element.centerY
+            };
+          case 'line':
+            return {
+              x: (element.startX + element.endX) / 2,
+              y: (element.startY + element.endY) / 2
+            };
+          case 'FreeDraw':
+            return {
+              x: element.startX,
+              y: element.startY
+            };
+          // Add other shapes here...
+          default:
+            return { x: 0, y: 0 };
+        }
+      }
+
+      function setCenter(element, center) {
+        let width, height;
+        switch (element.type) {
+          case 'rectangle':
+            width = Math.abs(element.startX - element.endX);
+            height = Math.abs(element.startY - element.endY);
+            element.startX = center.x - width / 2;
+            element.endX = center.x + width / 2;
+            element.startY = center.y - height / 2;
+            element.endY = center.y + height / 2;
+            break;
+          case 'circle':
+            element.centerX = center.x;
+            element.centerY = center.y;
+            break;
+          case 'line':
+            width = element.endX - element.startX;
+            height = element.endY - element.startY;
+            element.startX = center.x - width / 2;
+            element.endX = center.x + width / 2;
+            element.startY = center.y - height / 2;
+            element.endY = center.y + height / 2;
+            break;
+          case 'FreeDraw':
+          const dx = center.x - element.startX;
+          const dy = center.y - element.startY;
+          element.startX = center.x;
+          element.startY = center.y;
+          for(let i = 0; i < element.points.length; i++) {
+            element.points[i].x += dx;
+            element.points[i].y += dy;
+          }
+          break;
+          // Add other shapes here...
+        }
+      }
+
+      function drawImageScaled(img, ctx) {
+        const ratio = Math.min(canvas.width / img.width, canvas.height / img.height);
+        const centerShift_x = (canvas.width - img.width * ratio) / 2 + posX;
+        const centerShift_y = (canvas.height - img.height * ratio) / 2 + posY;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0, img.width, img.height, centerShift_x, centerShift_y, img.width * ratio, img.height * ratio);
+      }
+
+      function redrawImage() {
+        context.clearRect(0, 0, canvas.width, canvas.height);
+        context.save();
+        context.scale(zoomLevel, zoomLevel);
+        drawImageScaled(img, context);
+        drawnElements.forEach(elem => {
+          if (elem.hover == false && hideElements==true) {
+            let center = getCenter(elem);
+            let gradient = context.createRadialGradient(center.x, center.y, 0, center.x, center.y, 5);
+            gradient.addColorStop(0, 'white');
+            gradient.addColorStop(0.5, 'blue');
+            gradient.addColorStop(1, 'green');
+
+            context.beginPath();
+            context.arc(center.x + posX, center.y + posY, 5, 0, 2 * Math.PI, false);
+            context.fillStyle = gradient;
+            context.fill();
+          } else {
+            if (elem.type === 'line') {
+              context.beginPath();
+              context.moveTo(elem.startX + posX, elem.startY + posY);
+              context.lineTo(elem.endX + posX, elem.endY + posY);
+              context.strokeStyle = elem.color;
+              context.stroke();
+              drawArrowhead(elem.startX + posX, elem.startY + posY, elem.endX + posX, elem.endY + posY, 10, elem.color);
+            } else if (elem.type === 'rectangle') {
+              context.beginPath();
+              context.rect(elem.startX + posX, elem.startY + posY, elem.endX - elem.startX, elem.endY - elem.startY);
+              context.strokeStyle = elem.color;
+              context.stroke();
+            } else if (elem.type === 'circle') {
+              context.beginPath();
+              context.arc(elem.centerX + posX, elem.centerY + posY, elem.radius, 0, 2 * Math.PI);
+              context.strokeStyle = elem.color;
+              context.stroke();
+            } else if (elem.type === 'FreeDraw') {
+              context.beginPath();
+              context.moveTo(elem.points[0].x + posX, elem.points[0].y + posY);
+              for (let i = 1; i < elem.points.length; i++) {
+                context.lineTo(elem.points[i].x + posX, elem.points[i].y + posY);
+              }
+              context.strokeStyle = elem.color;
+              context.stroke();
+            }
+            if (elem.label) {
+              let center = getCenter(elem);
+              context.font = "16px Arial";
+              context.fillStyle = elem.color;
+              context.fillText(elem.label, center.x + posX, center.y + posY);
+            }
+            if (elem.selected) {
+              // Compute the bounding box of the element
+              let boundingBox;
+              if (elem.type === 'rectangle') {
+                console.log("elem");
+                boundingBox = {
+                  startX: Math.min(elem.startX, elem.endX),
+                  startY: Math.min(elem.startY, elem.endY),
+                  width: Math.abs(elem.startX - elem.endX),
+                  height: Math.abs(elem.startY - elem.endY),
+                };
+              } else if (elem.type === 'circle') {
+                console.log("elem");
+                boundingBox = {
+                  startX: elem.centerX - elem.radius,
+                  startY: elem.centerY - elem.radius,
+                  width: elem.radius * 2,
+                  height: elem.radius * 2,
+                };
+              } else if (elem.type === 'line') {
+                boundingBox = {
+                  startX: Math.min(elem.startX, elem.endX),
+                  startY: Math.min(elem.startY, elem.endY),
+                  width: Math.abs(elem.startX - elem.endX),
+                  height: Math.abs(elem.startY - elem.endY),
+                };
+              } else if (elem.type === 'FreeDraw') {
+                const xCoords = elem.points.map(p => p.x);
+                const yCoords = elem.points.map(p => p.y);
+                boundingBox = {
+                  startX: Math.min(...xCoords),
+                  startY: Math.min(...yCoords),
+                  width: Math.max(...xCoords) - Math.min(...xCoords),
+                  height: Math.max(...yCoords) - Math.min(...yCoords),
+                };
+              }
+
+              // Draw the bounding box
+              context.setLineDash([5, 5]);  // Set dashed lines
+              context.strokeStyle = '#000';
+              context.lineWidth = 2;
+              context.strokeRect(boundingBox.startX - 10 + posX, boundingBox.startY - 10 + posY,
+                                boundingBox.width + 20, boundingBox.height + 20);
+              context.setLineDash([]);  // Reset to solid line
+
+            }
+          }
+        });
+        context.restore();
+      }
+
+      function drawArrowhead(fromX, fromY, toX, toY, radius, color) {
+        let x_center = toX;
+        let y_center = toY;
+
+        let angle;
+        let x;
+        let y;
+
+        context.beginPath();
+
+        angle = Math.atan2(toY - fromY, toX - fromX);
+        x = radius * Math.cos(angle) + x_center;
+        y = radius * Math.sin(angle) + y_center;
+
+        context.moveTo(x, y);
+
+        angle += (1/3)*(2*Math.PI);
+        x = radius * Math.cos(angle) + x_center;
+        y = radius * Math.sin(angle) + y_center;
+
+        context.lineTo(x, y);
+
+        angle += (1/3)*(2*Math.PI);
+        x = radius * Math.cos(angle) + x_center;
+        y = radius * Math.sin(angle) + y_center;
+
+        context.lineTo(x, y);
+        context.closePath();
+
+        context.fillStyle = color;
+        context.fill();
+      }
+    </script>
+</body>
+</html>

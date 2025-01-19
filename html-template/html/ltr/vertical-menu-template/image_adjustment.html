@@ -1,0 +1,78 @@
+<style>
+  #adjustmentBtn {
+      position: fixed;
+      top: 50%; /* Center vertically */
+      right: 20px; /* Distance from the right edge */
+      z-index: 1000;
+      background: linear-gradient(30deg, #7367F0 0%, #CE9FFC 100%);;
+      border: none;
+      border-radius: 50%;
+      width: 60px;
+      height: 60px;
+      cursor: pointer;
+      color: white;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 16px;
+      transform: translateY(-50%); /* Adjust for the button's own height to center it accurately */
+    }
+    
+    #adjustmentBtn:hover {
+      background-color: #f9f9f9;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    }
+    
+    #adjustmentBtn:active {
+      background-color: #e9e9e9;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }                          
+    
+    #slidersPanel {
+      display: none;
+      position: fixed;
+      bottom: 55%;
+      right: 20px;
+      background-color: white;
+      padding: 10px;
+      border-radius: 5px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      z-index: 999;
+    }                          
+</style>
+<!-- Sliders Panel -->
+<button id="adjustmentBtn">Adjust</button>
+
+<div id="slidersPanel">
+    <div>
+      <label for="contrastSlider">Contrast</label>
+      <input type="range" min="0" max="200" value="100" id="contrastSlider">
+    </div>
+    <div>
+      <label for="brightnessSlider">Brightness</label>
+      <input type="range" min="0" max="200" value="100" id="brightnessSlider">
+    </div>
+    <div hidden>
+      <label for="saturationSlider">Saturation</label>
+      <input type="range" min="0" max="200" value="100" id="saturationSlider">
+    </div>
+</div>
+<script>
+  document.getElementById('adjustmentBtn').addEventListener('click', function() {
+    var panel = document.getElementById('slidersPanel');
+    panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+  });
+
+  function applyFilters() {
+    var contrast = document.getElementById('contrastSlider').value;
+    var brightness = document.getElementById('brightnessSlider').value;
+    var saturation = document.getElementById('saturationSlider').value;
+    var image = document.getElementById('image-container');
+    image.style.filter = `contrast(${contrast}%) brightness(${brightness}%) saturate(${saturation}%)`;
+    }
+    
+    document.getElementById('contrastSlider').addEventListener('input', applyFilters);
+    document.getElementById('brightnessSlider').addEventListener('input', applyFilters);
+    document.getElementById('saturationSlider').addEventListener('input', applyFilters);
+</script>

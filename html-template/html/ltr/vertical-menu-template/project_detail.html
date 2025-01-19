@@ -1,0 +1,302 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+<!-- BEGIN: Content-->
+<div class="content-overlay"></div>
+<div class="header-navbar-shadow"></div>
+<div class="content-wrapper">
+    <div class="content-header row">
+        <div class="content-header-left col-md-9 col-12 mb-2">
+            <div class="row breadcrumbs-top">
+                <div class="col-12">
+                    <h2 class="content-header-title float-left mb-0">Project Details</h2>
+                    <div class="breadcrumb-wrapper col-12">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="{% url 'home' %}">Dashboard</a></li>
+                            <li class="breadcrumb-item active">{{ project.name }}</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="content-body">
+        {% include 'alert.html' %}
+        <section class="page-project-view">
+            <div class="row">
+                <!-- Project Information Start -->
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">Project Information</div>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-12 col-sm-9 col-md-6 col-lg-5">
+                                    <table>
+                                        <tr>
+                                            <td class="font-weight-bold">Project Name</td>
+                                            <td>{{ project.name }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="font-weight-bold">Description</td>
+                                            <td>{{ project.description|default_if_none:"No description provided" }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="font-weight-bold">Created At</td>
+                                            <td>{{ project.created_at|date:"d M Y, H:i" }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="font-weight-bold">Updated At</td>
+                                            <td>{{ project.updated_at|date:"d M Y, H:i" }}</td>
+                                        </tr>
+                                        <tr>
+                                            <!-- <button type="button" class="btn btn-primary mr-1 mb-1" data-toggle="modal" data-target="#EditModal">Edit</button>
+                                            <a class="btn btn-outline-danger mr-1 mb-1" href="{% url 'project-delete' project.id %}"><i class="feather icon-trash-2"></i> Delete</a> -->
+                                        <td>{% if 'medical_research.change_project' in user.get_all_permissions %}
+                                        <button type="button" class="btn btn-primary mr-1 mb-1" data-toggle="modal" data-target="#EditModal">Edit</button>
+                                        {% endif %}
+                                    </td>
+                                        <td>
+                                        {% if 'medical_research.delete_project' in user.get_all_permissions %}
+                                        <a class="btn btn-outline-danger mr-1 mb-1" href="{% url 'project-delete' project.id %}"><i class="feather icon-trash-2"></i> Delete</a>
+                                        {% else %}
+                                        <a class="btn btn-outline-secondary mr-1 mb-1" href="{% url 'project-complete' project.id %}">Complete Project</a>
+                            
+                                        {% endif %}
+                                    </td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Project Information End -->
+            </div>
+        </section>
+        <!-- Modal -->
+<!-- Edit Modal -->
+<div class="modal fade" id="EditModal" tabindex="-1" role="dialog" aria-labelledby="EditModalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="EditModalTitle">Edit Project: {{ project.name }}</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form class="post-form form form-horizontal" method="POST" action="{% url 'project-update' project.id %}">
+                    {% csrf_token %}
+                    <div class="form-body">
+                        <!-- Project Basic Information -->
+                        <div class="row">
+                            <div class="col-12">
+                                <h6 class="py-1">Basic Information</h6>
+                                <div class="form-group row">
+                                    <div class="col-md-4">
+                                        <span>Project Name</span>
+                                    </div>
+                                    <div class="col-md-8">
+                                        <input value="{{ project.name|default_if_none:'' }}" type="text" id="name" class="form-control" name="name" placeholder="Project Name" required>
+                                    </div>
+                                </div>
+                                <div class="form-group row">
+                                    <div class="col-md-4">
+                                        <span>Description</span>
+                                    </div>
+                                    <div class="col-md-8">
+                                        <textarea id="description" class="form-control" name="description" placeholder="Project Description">{{ project.description }}</textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Annotation Settings -->
+                        <div class="row mt-2">
+                            <div class="col-12">
+                                <h6 class="py-1">Annotation Settings</h6>
+                                <div class="form-group row">
+                                    <div class="col-md-4">
+                                        <span>Annotation Method</span>
+                                    </div>
+                                    <div class="col-md-8">
+                                        <select name="annotation_method" class="form-control">
+                                            <option value="rectangle" {% if project.annotation_method == 'rectangle' %}selected{% endif %}>Rectangle</option>
+                                            <option value="polygon" {% if project.annotation_method == 'polygon' %}selected{% endif %}>Polygon</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Project Labels -->
+                        <div class="row mt-2">
+                            <div class="col-12">
+                                <h6 class="py-1">Project Labels</h6>
+                                <div class="labels-container">
+                                    <div class="form-group row">
+                                        <div class="col-md-4">
+                                            <span>Label 1</span>
+                                        </div>
+                                        <div class="col-md-8">
+                                            <input type="text" class="form-control" name="label_1" placeholder="Enter label 1" value="{{ project.label_1|default_if_none:'' }}">
+                                        </div>
+                                    </div>
+                                    <div class="form-group row">
+                                        <div class="col-md-4">
+                                            <span>Label 3</span>
+                                        </div>
+                                        <div class="col-md-8">
+                                            <input type="text" class="form-control" name="label_2" placeholder="Enter label 2" value="{{ project.label_2|default_if_none:'' }}">
+                                        </div>
+                                    </div>
+                                    <div class="text-right">
+                                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="addLabelField()">
+                                            <i class="feather icon-plus"></i> Add Label
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Notes Section -->
+                        <div class="row mt-2">
+                            <div class="col-12">
+                                <h6 class="py-1">Notes & Instructions</h6>
+                                <div class="form-group row">
+                                    <div class="col-md-12">
+                                        <textarea name="notes" class="form-control" rows="4" placeholder="Add any notes or instructions for the labeling/reviewing process.">{{ project.notes }}</textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Image Selection -->
+                        <div class="row mt-2">
+                            <div class="col-12">
+                                <h6 class="py-1">Selected Images</h6>
+                                <div class="image-selection-container">
+                                    <div class="row">
+                                        {% for image in library_images %}
+                                        aa  
+                                        <div class="col-md-4 mb-2">
+                                            <div class="custom-control custom-checkbox">
+                                                <input type="checkbox" 
+                                                       class="custom-control-input" 
+                                                       id="image_{{ image.id }}" 
+                                                       name="selected_images" 
+                                                       value="{{ image.id }}"
+                                                       {% if image in project.images.all %}checked{% endif %}>
+                                                <label class="custom-control-label" for="image_{{ image.id }}">
+                                                    <img src="{{ image.media_file.url}}" 
+                                                         alt="{{ image.media_file.name }}" 
+                                                         class="img-thumbnail" 
+                                                         style="max-width: 100px;">
+                                                    <span class="d-block mt-1">{{ image.media_file.url|truncatechars:20 }}</span>
+                                                </label>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Submit Buttons -->
+                        <div class="row mt-3">
+                            <div class="col-12 text-center">
+                                <button type="submit" class="btn btn-primary mr-1">Update Project</button>
+                                <button type="button" class="btn btn-outline-warning" data-dismiss="modal">Cancel</button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+        <!-- Images Section -->
+        <section id="basic-datatable">
+            <div class="row">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h4 class="card-title">Images</h4>
+                            <div class="modal-primary mr-1 mb-1 d-inline-block">
+                                <button type="button" id="add_image_button" class="btn btn-primary mr-1 mb-1 float-right" data-toggle="modal" data-target="#AddImageModal">Add Images</button>
+                            </div>
+                        </div>
+                        <div class="card-content">
+                            <div class="card-body card-dashboard">
+                                <div class="table-responsive">
+                                    <table class="table zero-configuration">
+                                        <thead>
+                                            <tr>
+                                                <th>Name</th>
+                                                <th>Uploaded At</th>
+                                                <th>Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for image in project.images.all %}
+                                            <tr>
+                                                <td>{{ image.media_file}}</td>
+                                                <td>{{ image.uploaded_at }}</td>
+                                                <td>
+                                                    <div class="fonticon-wrap">
+                                                        <a class="btn btn-success btn-sm" href="{{ image.media_file.url }}" download>Download</a>
+                                                        <a class="btn btn-primary btn-sm" href="{% url 'image-view' image.id 'project' %}">View</a>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+</div>
+<script type="text/javascript">
+    // Function to add new label field
+    function addLabelField() {
+        const labelsContainer = document.querySelector('.labels-container');
+        const labelCount = labelsContainer.querySelectorAll('.form-group').length + 1;
+        
+        const newLabelGroup = document.createElement('div');
+        newLabelGroup.className = 'form-group row';
+        newLabelGroup.innerHTML = `
+            <div class="col-md-4">
+                <span>Label ${labelCount}</span>
+            </div>
+            <div class="col-md-8">
+                <div class="d-flex">
+                    <input type="text" class="form-control" name="label_${labelCount}" placeholder="Enter label ${labelCount}">
+                    <button type="button" class="btn btn-danger btn-sm ml-1" onclick="this.parentElement.parentElement.parentElement.remove()">
+                        <i class="feather icon-trash-2"></i>
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        // Insert new label field before the "Add Label" button
+        labelsContainer.insertBefore(newLabelGroup, labelsContainer.lastElementChild);
+    }
+
+    // Initialize any bootstrap components
+    $(document).ready(function() {
+        // Initialize tooltips if needed
+        $('[data-toggle="tooltip"]').tooltip();
+    });
+</script>
+{% endblock %}
+
+

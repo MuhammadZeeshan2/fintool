@@ -1,0 +1,380 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <!-- BEGIN: Content-->
+        <div class="content-overlay"></div>
+        <div class="header-navbar-shadow"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-md-9 col-12 mb-2">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <h2 class="content-header-title float-left mb-0">Patient</h2>
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb">
+                                    <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a>
+                                    </li>
+                                    <li class="breadcrumb-item"><a href="{% url 'library-detail' record.patient.project.id %}">Project</a>
+                                    </li>
+                                    <li class="breadcrumb-item"><a href="{% url 'subject-detail' record.patient.id %}">Patient</a>
+                                    </li>
+                                    <li class="breadcrumb-item active">{{record.patient.name}}
+                                    </li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="content-body">
+                {% include 'alert.html' %}
+                <section class="page-users-view">
+                    <div class="row">
+                        <!-- account start -->
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <div class="card-title">Record</div>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-12 col-sm-9 col-md-6 col-lg-5">
+                                            <table>
+                                                <tr>
+                                                    <td class="font-weight-bold">Disease</td>
+                                                    <td>{{record.disease}}</td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="font-weight-bold">Created At</td>
+                                                    <td>{{record.created_at}}</td>
+                                                </tr>
+                                            </table>
+                                        </div>
+                                        <div class="col-12 col-md-12 col-lg-5">
+                                            <table class="ml-0 ml-sm-0 ml-lg-0">
+                                                <tr>
+                                                    <td class="font-weight-bold">Description</td>
+                                                    <td>{{record.description}}</td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="font-weight-bold">Updated At</td>
+                                                    <td>{{record.updated_at}}</td>
+                                                </tr>
+                                            </table>
+                                        </div>
+                                        <div class="col-12">
+                                            {% if 'medical_research.change_record' in user.get_all_permissions %}
+                                                <button type="button" class="btn btn-primary mr-1 mb-1" data-toggle="modal" data-target="#EditModel">
+                                                    Edit
+                                                </button>
+                                            {% endif %}
+                                            {% if 'medical_research.delete_record' in user.get_all_permissions %}
+                                                <a class="btn btn-outline-danger mr-1 mb-1" href="{% url 'record-delete' record.id %}"><i class="feather icon-trash-2"></i> Delete</a>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- account end -->
+                    </div>
+                </section>
+                <!-- Zero configuration table -->
+
+                <div class="modal fade" id="EditModel" tabindex="-1" role="dialog" aria-labelledby="EditModelTitle" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered modal-dialog-centered modal-dialog-scrollable" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="EditModelTitle">Edit Record</h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <div class="modal-body">
+                                <form class="post-form form form-horizontal" method="POST" action="{% url 'record-update' record.id %}"> 
+                                    {% csrf_token %}  
+                                    <div class="form-body">
+                                        <div class="row">
+                                            <div class="col-12">
+                                                <div class="form-group row">
+                                                    <div class="col-md-4">
+                                                        <span>Disease</span>
+                                                    </div>
+                                                    <div class="col-md-8">
+                                                        <input value={{record.disease}} type="text" id="disease" class="form-control" name="disease" placeholder="Disease" required data-validation-required-message="This name field is required">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-12">
+                                                <div class="form-group row">
+                                                    <div class="col-md-4">
+                                                        <span>Description</span>
+                                                    </div>
+                                                    <div class="col-md-8">
+                                                        <input value={{record.description}} type="text" id="description" class="form-control" name="description" placeholder="Description" required data-validation-required-message="This name field is required">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-8 offset-md-4">
+                                                <button type="submit" class="btn btn-primary mr-1 mb-1">Submit</button>
+                                                <button type="reset" class="btn btn-outline-warning mr-1 mb-1">Reset</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                            <!-- <div class="modal-footer">
+                                <button type="button" class="btn btn-primary" data-dismiss="modal">Accept</button>
+                            </div> -->
+                        </div>
+                    </div>
+                </div>
+                
+                <section id="basic-datatable">
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h4 class="card-title">Images</h4>
+                                    {% if 'medical_research.add_image' in user.get_all_permissions %}
+                                        <button type="button" class="btn btn-primary mr-1 mb-1 float-right" data-toggle="modal" data-target="#InsertImageModel">
+                                            Add Images
+                                        </button>
+                                    {% endif %}
+                                </div>
+                                <div class="card-content">
+                                    <div class="card-body card-dashboard">
+                                        <p class="card-text">All Images</p>
+                                        <div class="table-responsive">
+                                            <table class="table zero-configuration">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Type</th>
+                                                        <th>Name</th>
+                                                        <th>Uploaded At</th>
+                                                        <th>Labelled</th>
+                                                        <th>Action</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {% for image in images %}
+                                                    <tr>
+                                                        <td>{{ image.image_type }}</td>
+                                                        <td>{{ image.media_file.name }}</td>
+                                                        <td>{{ image.created_at }}</td>
+                                                        {% if image.labelled %}
+                                                            <td>Yes</td>
+                                                        {% else %}
+                                                            <td>No</td>
+                                                        {% endif %}
+                                                        <td>
+                                                            <div class="fonticon-wrap">
+                                                                {% if 'medical_research.download_image' in user.get_all_permissions %}
+                                                                <a class="ficon feather icon-download" href="{{ image.media_file.url }}" download data-toggle="tooltip" title="download"></a>
+                                                                {% endif %}
+                                                                <a class="feather icon-eye" href="{% url 'image-view' image.id %}" data-toggle="tooltip" title="view orignal image"></a>
+                                                                {% if image.anonymized %}
+                                                                    <a class="feather icon-eye" href="{% url 'image-anonymized-view' image.id %}" data-toggle="tooltip" title="view anonymized image"></a>
+                                                                {% else %}
+                                                                    <a class="feather icon-eye" href="javascript:void(0)" data-toggle="tooltip" title="Anonymization in progress"></a>
+                                                                {% endif %}
+                                                                {% if image.labelled %}
+                                                                    <a class="feather icon-eye" href="{% url 'image-labelled-view' image.id %}" data-toggle="tooltip" title="view labelled image"></a>
+                                                                {% else %}
+                                                                    <a class="feather icon-eye" href="javascript:void(0)" data-toggle="tooltip" title="not labelled image"></a>
+                                                                {% endif %}
+                                                                <a class="feather icon-trash-2" href="{% url 'image-delete' image.id %}" data-toggle="tooltip" title="delete image"></a>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                    {% endfor %}
+                                                </tbody>
+                                                <tfoot>
+                                                    <tr>
+                                                        <th>Type</th>
+                                                        <th>Name</th>
+                                                        <th>Uploaded At</th>
+                                                        <th>Labelled</th>
+                                                        <th>Action</th>
+                                                    </tr>
+                                                </tfoot>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h4 class="card-title">Documents</h4>
+                                    {% if 'medical_research.add_document' in user.get_all_permissions %}
+                                        <button type="button" class="btn btn-primary mr-1 mb-1 float-right" data-toggle="modal" data-target="#InsertDocumentModel">
+                                            Add Documents
+                                        </button>
+                                    {% endif %}
+                                </div>
+                                <div class="card-content">
+                                    <div class="card-body card-dashboard">
+                                        <p class="card-text">All Documents</p>
+                                        <div class="table-responsive">
+                                            <table class="table zero-configuration">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Name</th>
+                                                        <th>Uploaded At</th>
+                                                        <th>Action</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {% for document in decuments %}
+                                                    <tr>
+                                                        <td>{{ document.media_file.name }}</td>
+                                                        <td>{{ document.created_at }}</td>
+                                                        <td>
+                                                            <div class="fonticon-wrap">
+                                                                {% if 'medical_research.download_document' in user.get_all_permissions %}
+                                                                <a class="ficon feather icon-download" href="{{ document.media_file.url }}" download></a>
+                                                                {% endif %}
+                                                                <a class="feather icon-trash-2" href="{% url 'document-delete' document.id %}"></a>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                    {% endfor %}
+                                                </tbody>
+                                                <tfoot>
+                                                    <tr>
+                                                        <th>Name</th>
+                                                        <th>Uploaded At</th>
+                                                        <th>Action</th>
+                                                    </tr>
+                                                </tfoot>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal fade" id="InsertImageModel" tabindex="-1" role="dialog" aria-labelledby="InsertModelTitle" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered modal-dialog-centered modal-dialog-scrollable" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="InsertModelTitle">Add Images</h5>
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                                <div class="modal-body">
+                                    <form class="post-form form form-horizontal" method="POST" action="{% url 'image-insert' %}" enctype="multipart/form-data">
+                                        {% csrf_token %}  
+                                        <div class="form-body">
+                                            <div class="row">
+                                                <div class="col-12">
+                                                    <input type="hidden" name="record_id" id="record_id" value="{{ record.id }}">
+                                                    <div class="form-group row">
+                                                        <div class="col-md-4">
+                                                            <span>Image Type</span>
+                                                        </div>
+                                                        <div class="col-md-8">
+                                                            <select class="select2 form-control" name="image_type" required>
+                                                                <option value="CT">CT</option>
+                                                                <option value="Radiograph">Radiograph</option>
+                                                                <option value="MRI">MRI</option>
+                                                                <option value="Ultrasound">Ultrasound</option>
+                                                                <option value="Angiogram">Angiogram</option>
+                                                                <option value="Fluoroscopy">Fluoroscopy</option>
+                                                            </select>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-12">
+                                                    <fieldset class="form-group row">
+                                                        <div class="col-md-4">
+                                                            <span>Image</span>
+                                                        </div>
+                                                        <div class="col-md-8">
+                                                            <div class="custom-file">
+                                                                <input type="file" name="media_file" class="custom-file-input" id="media_file">
+                                                                <label class="custom-file-label" for="media_file">Choose file</label>
+                                                            </div>
+                                                        </div>
+                                                    </fieldset>
+                                                </div>
+                                                <!-- <div class="col-12">
+                                                    <fieldset class="form-group row">
+                                                        <div class="col-md-4"></div>
+                                                        <div class="col-md-8">
+                                                            <fieldset>
+                                                                <div class="custom-control custom-checkbox">
+                                                                    <input type="checkbox" class="custom-control-input" checked name="anonymized" id="anonymized">
+                                                                    <label class="custom-control-label" for="anonymized">Need Anonymization?</label>
+                                                                </div>
+                                                            </fieldset>
+                                                        </div>
+                                                    </fieldset>
+                                                </div> -->
+                                                <div class="col-md-8 offset-md-4">
+                                                    <button type="submit" class="btn btn-primary mr-1 mb-1">Submit</button>
+                                                    <button type="reset" class="btn btn-outline-warning mr-1 mb-1">Reset</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                                <!-- <div class="modal-footer">
+                                    <button type="button" class="btn btn-primary" data-dismiss="modal">Accept</button>
+                                </div> -->
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal fade" id="InsertDocumentModel" tabindex="-1" role="dialog" aria-labelledby="InsertModelTitle" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered modal-dialog-centered modal-dialog-scrollable" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="InsertModelTitle">Add Documents</h5>
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                                <div class="modal-body">
+                                    <form class="post-form form form-horizontal" method="POST" action="{% url 'document-insert' %}" enctype="multipart/form-data">
+                                        {% csrf_token %}  
+                                        <div class="form-body">
+                                            <div class="row">
+                                                <input type="hidden" name="record_id" id="record_id" value="{{ record.id }}">
+                                                <div class="col-12">
+                                                    <fieldset class="form-group row">
+                                                        <div class="col-md-4">
+                                                            <span>Document</span>
+                                                        </div>
+                                                        <div class="col-md-8">
+                                                            <div class="custom-file">
+                                                                <input type="file" name="media_file" class="custom-file-input" id="media_file" accept="*/*" required data-validation-required-message="">
+                                                                <label class="custom-file-label" for="media_file">Choose file</label>
+                                                            </div>
+                                                        </div>
+                                                    </fieldset>
+                                                </div>
+                                                <div class="col-md-8 offset-md-4">
+                                                    <button type="submit" class="btn btn-primary mr-1 mb-1">Submit</button>
+                                                    <button type="reset" class="btn btn-outline-warning mr-1 mb-1">Reset</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                                <!-- <div class="modal-footer">
+                                    <button type="button" class="btn btn-primary" data-dismiss="modal">Accept</button>
+                                </div> -->
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                <!--/ Zero configuration table -->
+            </div>
+        </div>
+    <!-- END: Content-->
+{% endblock content %}

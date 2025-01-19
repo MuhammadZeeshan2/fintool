@@ -1,0 +1,634 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+    <style>
+        #overlay {
+            display: none;
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 1000;
+          }
+          .spinner-grow {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            opacity: 1;
+          }
+    </style>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+    <div id="overlay">
+        <div class="spinner-grow text-primary" role="status">
+            <span class="sr-only">Loading...</span>
+        </div>
+    </div>
+    <div class="header-navbar-shadow"></div>
+    <div class="content-wrapper">
+        <div class="content-header row">
+            <div class="content-header-left col-md-9 col-12 mb-2">
+                <div class="row breadcrumbs-top">
+                    <div class="col-12">
+                        <div class="breadcrumb-wrapper col-12">
+                            <ol class="breadcrumb">
+                                <li class="breadcrumb-item"><a href="/">Home</a>
+                                </li>
+                                <li class="breadcrumb-item active">All Images
+                                </li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="content-detached content-right">
+            <div class="content-body">
+                {% include 'alert.html' %}
+                <!-- Ecommerce Content Section Starts -->
+                <!-- Ecommerce Content Section Starts -->
+                <!-- background Overlay when sidebar is shown  starts-->
+                <div class="shop-content-overlay"></div>
+                <!-- background Overlay when sidebar is shown  ends-->
+
+                <!-- Ecommerce Search Bar Starts -->
+                <section id="ecommerce-searchbar">
+                    <div class="row mt-1">
+                        <div class="col-sm-12">
+                            <fieldset class="form-group position-relative">
+                                <input type="text" class="form-control search-product" id="searchInput" onkeyup="searchTable()" placeholder="Search here">
+                                <div class="form-control-position">
+                                    <i class="feather icon-search"></i>
+                                </div>
+                            </fieldset>
+                        </div>
+                    </div>
+                </section>
+                <!-- Ecommerce Search Bar Ends -->
+
+                <!-- Ecommerce Products Starts -->
+                <section id="basic-datatable">
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="row" style="flex-direction: row; justify-content: space-between;">
+                                <div class="col-2">
+                                    <select class="price-options form-control" id="page-size-dropdown" onchange="get_images(1);">
+                                        <option disabled selected>per page</option>
+                                        <option selected value="10">10</option>
+                                        <option value="50">50</option>
+                                        <option value="100">100</option>
+                                    </select>
+                                </div>
+                                <div class="modal-primary mr-1 d-inline-block">
+                                    <button type="button" id="clean_button" disabled onclick="clean_button()" class="btn btn-primary mr-1 mb-1 float-right">
+                                        Clean Images
+                                    </button>
+                                    {% if 'medical_research.download_image' in user.get_all_permissions %}
+                                        <button type="button" id="download_button" disabled class="btn btn-primary mr-1 mb-1 float-right" data-toggle="modal" data-target="#DownloadModal">
+                                            Download Images
+                                        </button>
+                                    {% endif %}
+                                    <h7 id="selected_count" class="mr-1 mb-1 float-right"style="margin-top: 0.5em;">
+                                        0 Selected
+                                    </h7>
+                                </div>
+                            </div>
+                            <div class="card">
+                                <div class="card-content">
+                                    <div class="card-body card-dashboard">
+                                        <div class="table-responsive">
+                                            <p id="page" disabled hidden>{{page}}</p>
+                                            <table class="table " id="table_images">
+                                                <thead>
+                                                    <tr>
+                                                        <th class="no-sort" name="prop_ref_no">
+                                                            <input class="checkbox select-row" data-rows-group-id="projects" type="checkbox" id="selec_all" onclick="selectAll(this)"/>
+                                                        </th>
+                                                        <th>Name</th>
+                                                        <th>Anatomy</th>
+                                                        <th>Modality</th>
+                                                        <th>Diseases</th>
+                                                        <th>Clean</th>
+                                                        <th>Labelled</th>
+                                                        <th>Uploaded At</th>
+                                                        <th>Action</th>
+                                                        <th style="display: none;">labels</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="table_body">
+                                                </tbody>
+                                                <tfoot>
+                                                    <tr>
+                                                        <th></th>
+                                                        <th>Name</th>
+                                                        <th>Anatomy</th>
+                                                        <th>Modality</th>
+                                                        <th>Diseases</th>
+                                                        <th>Clean</th>
+                                                        <th>Labelled</th>
+                                                        <th>Uploaded At</th>
+                                                        <th>Action</th>
+                                                        <th style="display: none;">labels</th>
+                                                    </tr>
+                                                </tfoot>
+                                            </table>
+                                            <div class="row">
+                                                <div class="col-sm-6">
+                                                    <span style="font-weight: 500; font-size: small;" id="table_count"></span>
+                                                </div>
+                                                <div class="col-sm-6" id="pagination">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% include 'includes/download_image.html' %}
+                </section>
+                <!-- Ecommerce Products Ends -->
+
+                <!-- Ecommerce Pagination Starts -->
+                <section id="ecommerce-pagination">
+                </section>
+                <!-- Ecommerce Pagination Ends -->
+
+            </div>
+        </div>
+        <div class="sidebar-detached  sidebar-left">
+            <div class="sidebar">
+                <!-- Ecommerce Sidebar Starts -->
+                <div class="sidebar-shop" id="ecommerce-sidebar-toggler">
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <h6 class="filter-heading d-none d-lg-block">Filters</h6>
+                        </div>
+                    </div>
+                    <span class="sidebar-close-icon d-block d-md-none">
+                        <i class="feather icon-x"></i>
+                    </span>
+                    <div class="card">
+                        <div class="card-body">
+                            <!-- Brands -->
+                            <div class="" style="height: 600px; overflow-y: auto;">
+                                <!-- Categories Starts -->
+                                <div>
+                                    <div class="product-category-title">
+                                        <h6 class="filter-title mb-1">Labelled</h6>
+                                    </div>
+                                    <ul class="list-unstyled categories-list">
+                                        <li>
+                                            <span class="vs-radio-con vs-radio-primary py-25">
+                                                <input type="radio" class="radio-all filter-radio" name="label-filter" value="all" checked>
+                                                <span class="vs-radio">
+                                                    <span class="vs-radio--border"></span>
+                                                    <span class="vs-radio--circle"></span>
+                                                </span>
+                                                <span class="ml-50">All</span>
+                                            </span>
+                                        </li>
+                                        <li>
+                                            <span class="vs-radio-con vs-radio-primary py-25">
+                                                <input type="radio" name="label-filter"class="filter-radio" value="true">
+                                                <span class="vs-radio">
+                                                    <span class="vs-radio--border"></span>
+                                                    <span class="vs-radio--circle"></span>
+                                                </span>
+                                                <span class="ml-50">Yes</span>
+                                            </span>
+                                        </li>
+                                        <li>
+                                            <span class="vs-radio-con vs-radio-primary py-25">
+                                                <input type="radio" name="label-filter"class="filter-radio"  value="false">
+                                                <span class="vs-radio">
+                                                    <span class="vs-radio--border"></span>
+                                                    <span class="vs-radio--circle"></span>
+                                                </span>
+                                                <span class="ml-50">No</span>
+                                            </span>
+                                        </li>
+                                    </ul>
+                                </div>
+                                <hr>
+                                <!-- Categories Ends -->
+                                <!-- Categories Starts -->
+                                <div>
+                                    <div class="product-category-title">
+                                        <h6 class="filter-title mb-1">Cleaned</h6>
+                                    </div>
+                                    <ul class="list-unstyled categories-list">
+                                        <li>
+                                            <span class="vs-radio-con vs-radio-primary py-25">
+                                                <input type="radio" class="radio-all filter-radio" name="clean-filter" value="" checked>
+                                                <span class="vs-radio">
+                                                    <span class="vs-radio--border"></span>
+                                                    <span class="vs-radio--circle"></span>
+                                                </span>
+                                                <span class="ml-50">All</span>
+                                            </span>
+                                        </li>
+                                        <li>
+                                            <span class="vs-radio-con vs-radio-primary py-25">
+                                                <input type="radio" name="clean-filter" class="filter-radio" value="true">
+                                                <span class="vs-radio">
+                                                    <span class="vs-radio--border"></span>
+                                                    <span class="vs-radio--circle"></span>
+                                                </span>
+                                                <span class="ml-50">Yes</span>
+                                            </span>
+                                        </li>
+                                        <li>
+                                            <span class="vs-radio-con vs-radio-primary py-25">
+                                                <input type="radio" name="clean-filter" class="filter-radio" value="false">
+                                                <span class="vs-radio">
+                                                    <span class="vs-radio--border"></span>
+                                                    <span class="vs-radio--circle"></span>
+                                                </span>
+                                                <span class="ml-50">No</span>
+                                            </span>
+                                        </li>
+                                        <li>
+                                            <span class="vs-radio-con vs-radio-primary py-25">
+                                                <input type="radio" name="clean-filter" class="filter-radio" value="null">
+                                                <span class="vs-radio">
+                                                    <span class="vs-radio--border"></span>
+                                                    <span class="vs-radio--circle"></span>
+                                                </span>
+                                                <span class="ml-50">In Progress</span>
+                                            </span>
+                                        </li>
+                                    </ul>
+                                </div>
+                                <hr>
+                                <!-- Categories Ends -->
+                                <div class="filters">
+                                    <div class="brand-title mt-1 pb-1">
+                                        <h6 class="filter-title mb-0">Anatomy</h6>
+                                    </div>
+                                    <div class="brand-list">
+                                        <select class="select2 form-control select2-size-sm" multiple id="anotomy-filters">
+                                            {% for anotomy in anotomies %}
+                                                <option value="{{anotomy.id}}">{{anotomy.name}}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                                <!-- /Brand -->
+                                <hr>
+                                <div class="filters">
+                                    <div class="brand-title mt-1 pb-1">
+                                        <h6 class="filter-title mb-0">Diseases</h6>
+                                    </div>
+                                    <div class="brand-list">
+                                        <select class="select2 form-control select2-size-sm" multiple id="diseases">                                            
+                                        </select>
+                                    </div>
+                                </div>
+                                <!-- /Brand -->
+                                <hr>
+                                <div class="filters">
+                                    <div class="brand-title mt-1 pb-1">
+                                        <h6 class="filter-title mb-0">Modality</h6>
+                                    </div>
+                                    <div class="brand-list">
+                                        <select class="select2 form-control select2-size-sm" multiple id="modality-filters">
+                                            {% for modality in modalities %}
+                                                <option value="{{modality.id}}">{{modality.name}}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                                <!-- /Brand -->
+                                <hr>
+                                <div class="filters">
+                                    <div class="brand-title mt-1 pb-1">
+                                        <h6 class="filter-title mb-0">Subjects</h6>
+                                    </div>
+                                    <div class="brand-list">
+                                        <select class="select2 form-control select2-size-sm" multiple id="subjects-filters">
+                                            {% for subject in subjects %}
+                                                <option value="{{subject.id}}">{{subject.mrm}}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                                <!-- /Brand -->
+                                <hr>
+                                <div class="filters">
+                                    <div class="brand-title mt-1 pb-1">
+                                        <h6 class="filter-title mb-0">Libraries</h6>
+                                    </div>
+                                    <div class="brand-list">
+                                        <select class="select2 form-control select2-size-sm" multiple id="libraries-filters">
+                                            {% for library in libraries %}
+                                                <option value="{{library.id}}">{{library.name}}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                                <hr>
+                                <div class="filters">
+                                    <div class="brand-title mt-1 pb-1">
+                                        <h6 class="filter-title mb-0">States</h6>
+                                    </div>
+                                    <div class="brand-list">
+                                        <select class="select2 form-control select2-size-sm" multiple id="states-filters">
+                                            {% for state in states %}
+                                                <option value="{{state.name}}">{{state.name}}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                                <hr>
+                                <div class="filters">
+                                    <div class="brand-title mt-1 pb-1">
+                                        <h6 class="filter-title mb-0">Hospitals</h6>
+                                    </div>
+                                    <div class="brand-list">
+                                        <select class="select2 form-control select2-size-sm" multiple id="hospitals-filters">
+                                            {% for hospital in hospitals %}
+                                                <option value="{{hospital.name}}">{{hospital.name}}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- /Brand -->
+                            <hr>
+                            <!-- Clear Filters Starts -->
+                            <div id="clear-filters">
+                                <button class="btn btn-block btn-primary" onclick="clear_filter();">CLEAR ALL FILTERS</button>
+                            </div>
+                            <!-- Clear Filters Ends -->
+                        </div>
+                    </div>
+                </div>
+                <!-- Ecommerce Sidebar Ends -->
+
+            </div>
+        </div>
+    </div>
+    <!-- END: Content-->
+    <script src="{% static 'js/scripts/diseases.js' %}"></script>
+    <script type="text/javascript">
+        var isClearingAllFilters = false;
+        var options = {
+            year: 'numeric',
+            month: 'numeric',
+            day: 'numeric',
+            hour: 'numeric',
+            minute: 'numeric',
+            second: 'numeric',
+            hour12: true,
+            timeZone: 'Asia/Kuala_Lumpur'
+          };
+        function get_images(page=null){
+            if(isClearingAllFilters == true){return null;}
+            if(page){
+                var page_no = page;
+            }else{
+                var page_no = $("#page").text();
+            }
+            var label = [];
+            var cleaned = [];
+            var library = $("#libraries-filters").val();
+            var anotomy = $("#anotomy-filters").val();
+            var modality = $("#modality-filters").val();
+            var subject = $("#subjects-filters").val();
+            var diseases = $("#diseases").val();
+            var states = $("#states-filters").val();
+            var hospitals = $("#hospitals-filters").val();
+            $("#selec_all").prop("checked", false);
+            selectAll($("#selec_all"));
+
+            library = library.join(',');
+            subject = subject.join(',');
+            anotomy = anotomy.join(',');
+            modality = modality.join(',');
+            diseases = diseases.join(',');
+            states = states.join(',');
+            hospitals = hospitals.join(',');
+            
+            $('#overlay').show();
+            $.ajax({
+                url: `/get_images?per_page=${$("#page-size-dropdown").val()}&page=${page_no}&library=${library}&subject=${subject}&anotomy=${anotomy}&modality=${modality}&diseases=${diseases}&states=${states}&hospitals=${hospitals}&label=${$("input[name='label-filter']:checked").val()}&clean=${$("input[name='clean-filter']:checked").val()}`,
+                type: 'GET',
+                success: function(response) {
+                    var images = response.images;
+                    var pagination = response.pagination;
+                    $('#table_body').empty();
+                    $('#pagination').empty();
+                    for(i=0; i<images.length; i++){
+                        var image = images[i];
+                        var uploaded_date = new Date(image.uploaded_at);
+                        var uploaded_date_ = uploaded_date.toLocaleString('en-US', options);
+                        var row = `<tr>
+                            <td style="text-align: center; vertical-align: top; width: 20px;">
+                                <input class="checkbox select-row" data-rows-group-id="projects" type="checkbox" id="123" data-id="${image.id}" onclick="enableDisable()"/>
+                            </td>
+                            <td>${image.name}</td>
+                            <td>${image.anotomy}</td>
+                            <td>${image.modality}</td>
+                            <td>${image.diseases}</td>
+                            <td>${image.is_clean}</td>
+                            <td>${image.is_labelled}</td>
+                            <td>${uploaded_date_}</td>
+                            <td>
+                                <div class="fonticon-wrap">`;
+                                    if(image.url){
+                                        row = row + `
+                                        <a class="btn px-1 btn-success btn-sm" href="${image.url}" download data-toggle="tooltip" title="download">Download</a>`;
+                                    }
+                                    var urlBase = "{% url 'image-view' '999999' 'subject' %}";
+                                    var url = urlBase.replace('999999', image.id);
+                                    row = row + `<a class="btn px-1 btn-primary btn-sm" href="${url}" data-toggle="tooltip" title="view raw">Raw</a>`;
+                                    if(image.is_clean=="Yes"){
+                                        var urlBase = "{% url 'image-anonymized-view' '999999' 'subject' %}";
+                                        var url = urlBase.replace('999999', image.id);
+                                        row = row + `
+                                        <a class="btn px-1 btn-primary btn-sm" href="${url}" data-toggle="tooltip" title="view clean">Clean</a>`;
+                                    }
+                                    if(image.is_labelled=="Yes"){
+                                        var urlBase = "{% url 'image-labelled-view' '999999' 'subject' %}";
+                                        var url = urlBase.replace('999999', image.id);
+                                        row = row + `
+                                        <a class="btn px-1 btn-primary btn-sm" href="${url}" data-toggle="tooltip" title="view labelled image">Labelled</a>`;
+                                    }
+                                    row = row + `
+                                </div>
+                            </td>
+                        </tr>`;
+                        $('#table_body').append(row);
+                    }
+                    var pagination = response.pagination;
+                    var pagination_row = 
+                    `<nav aria-label="...">
+                        <ul class="pagination justify-content-end">`;
+                            if (pagination.has_previous){
+                                pagination_row = pagination_row + `<li class="page-item prev-item"><a class="page-link" onclick="changePage(${ pagination.previous_page_number },${ pagination.per_page });"></a></li>`
+                            }
+                            else{
+                                pagination_row = pagination_row + `<li class="page-item prev-item disabled"><span class="page-link" href="#"></span></li>`
+                            }
+                            if (pagination.number > 2){
+                                pagination_row = pagination_row + `<li class="page-item"><a class="page-link" onclick="changePage(1, ${ pagination.per_page });">1</a></li>`
+                                if (pagination.number > 3){
+                                    pagination_row = pagination_row + `<li class="page-item disabled"><span class="page-link">...</span></li>`
+                                }
+                            }
+                            if (pagination.number > 1){
+                                pagination_row = pagination_row + `<li class="page-item"><a class="page-link" onclick="changePage(${ pagination.number-1 },${ pagination.per_page });">${ pagination.number-1 }</a></li>`
+                            }
+                            pagination_row = pagination_row + `<li class="page-item active"><span class="page-link">${ pagination.number }<span class="sr-only">(current)</span></span></li>`
+                            if (pagination.number < pagination.num_pages){
+                                pagination_row = pagination_row + `<li class="page-item"><a class="page-link" onclick="changePage(${ pagination.number+1 },${ pagination.per_page });">${ pagination.number+1 }</a></li>`
+                            }
+                            if (pagination.number < (pagination.num_pages - 1)){
+                                if (pagination.number < (pagination.num_pages - 2)){
+                                    pagination_row = pagination_row + `<li class="page-item disabled"><span class="page-link">...</span></li>`;
+                                }
+                                pagination_row = pagination_row + `<li class="page-item"><a class="page-link" onclick="changePage(${ pagination.num_pages },${ pagination.per_page });">${ pagination.num_pages }</a></li>`
+                            }
+                            if (pagination.has_next){
+                                pagination_row = pagination_row + `<li class="page-item next-item"><a class="page-link" onclick="changePage(${ pagination.next_page_number },${ pagination.per_page });"></a></li>`
+                            }
+                            else{
+                                pagination_row = pagination_row + `<li class="page-item next-item disabled"><span class="page-link"></span></li>`
+                            }
+                        pagination_row = pagination_row + `</ul>
+                    </nav>`;
+                    $('#pagination').append(pagination_row);
+                    $('#table_count').text(`Showing ${images.length} of ${response.count}`);
+                    $('#overlay').hide();
+                },
+                error: function() {
+                    $('#overlay').hide();
+                }
+            });
+        }
+        function changePage(page, per_page){
+            $("#page").text(page);
+            $("#page-size-dropdown").val(per_page);
+            isEditing = false;
+            get_images();
+        }
+        function clear_filter(){
+            isClearingAllFilters = true;
+            $('.select2').each(function() {
+                $(this).val(null).trigger('change');
+            });
+            isClearingAllFilters = false;
+            get_images(1);
+        }
+        $('.filter-radio').on('change', function() {
+            get_images(1);
+        });
+        function enableDisable() {
+            var checkBox = document.querySelectorAll('input[id="123"]');
+            var button = document.getElementById("clean_button")
+            var download_button = document.getElementById("download_button");
+            var selected_count = document.getElementById("selected_count");
+
+            count = 0;
+            for (i = 0; i < checkBox.length; ++i) {
+                if(checkBox[i].checked == true){
+                    count = count + 1;
+                }
+            }
+            selected_count.innerHTML = `${count} Selected`;
+            for (i = 0; i < checkBox.length; ++i) {
+                if(checkBox[i].checked == true){
+                    button.disabled = false;
+                    download_button.disabled = false;
+                    return;
+                }
+                console.log(checkBox[i].checked);
+            }
+            button.disabled = true;
+            download_button.disabled = true;
+        }
+        function selectAll(obj) {
+            var checkBox = document.querySelectorAll('input[id="123"]');
+            var button = document.getElementById("clean_button");
+            var download_button = document.getElementById("download_button");
+            if(obj.checked==true){
+                selected_count.innerHTML = `${checkBox.length} Selected`;
+            }
+            else{
+                selected_count.innerHTML = `0 Selected`;
+            }
+            for (i = 0; i < checkBox.length; ++i) {
+                checkBox[i].checked = obj.checked;
+                button.disabled = !obj.checked;
+                download_button.disabled = !obj.checked;
+            }
+        }
+        function clean_button() {
+            var checkBox = document.querySelectorAll('input[id="123"]');
+            var formData=new FormData();
+            formData.append("csrfmiddlewaretoken",'{{ csrf_token }}');
+            for (i = 0; i < checkBox.length; ++i) {
+                if(checkBox[i].checked == true){
+                    formData.append("ids[]", checkBox[i].getAttribute("data-id"));
+                    console.log(checkBox[i].getAttribute("data-id"));
+                }
+            }
+            var xhr=new XMLHttpRequest();
+            xhr.open("POST","/image_anonymize/",true);
+            xhr.send(formData);
+            location.reload();
+        }
+        function searchTable() {
+            var input, filter, table, rows, cell1, cell2, cell3, cell4, cell5, cell6, txtValue1, txtValue2, txtValue3, txtValue4, txtValue5, txtValue6;
+            input = document.getElementById("searchInput");
+            filter = input.value.toUpperCase();
+            if(filter=='' || filter==null){
+                isEditing = false;
+            }
+            else{
+                isEditing = true;
+            }
+            table = document.getElementById("table_images");
+            rows = table.getElementsByTagName("tr");
+
+            // Loop through all table rows, and hide those who don't match the search query
+            for (var i = 1; i < rows.length; i++) {
+                cell1 = rows[i].getElementsByTagName("td")[2]; // second column
+                cell2 = rows[i].getElementsByTagName("td")[3]; // third column
+                cell3 = rows[i].getElementsByTagName("td")[4]; // forth column
+                cell4 = rows[i].getElementsByTagName("td")[5]; // fifth column
+                cell5 = rows[i].getElementsByTagName("td")[6]; // sixth column
+                cell6 = rows[i].getElementsByTagName("td")[7]; // seventh column
+                if (cell1 && cell2 && cell3 && cell4 && cell5 && cell6) {
+                    txtValue1 = cell1.textContent || cell1.innerText;
+                    txtValue2 = cell2.textContent || cell2.innerText;
+                    txtValue3 = cell3.textContent || cell3.innerText;
+                    txtValue4 = cell4.textContent || cell4.innerText;
+                    txtValue5 = cell5.textContent || cell5.innerText;
+                    txtValue6 = cell6.textContent || cell6.innerText;
+                    if (txtValue1.toUpperCase().indexOf(filter) > -1 || 
+                        txtValue2.toUpperCase().indexOf(filter) > -1 ||
+                        txtValue3.toUpperCase().indexOf(filter) > -1 ||
+                        txtValue4.toUpperCase().indexOf(filter) > -1 ||
+                        txtValue6.toUpperCase().indexOf(filter) > -1 ||
+                        txtValue5.toUpperCase().indexOf(filter) > -1)
+                    {
+                        rows[i].style.display = "";
+                    } else {
+                       rows[i].style.display = "none";
+                    }
+                }
+            }
+        }
+        $(document).ready(function() {
+            $('.select2').on('change', function(e) {
+                // Call your desired function here
+                console.log("OK");
+                get_images();
+            });
+            get_images();
+        });
+    </script>
+{% endblock content %}

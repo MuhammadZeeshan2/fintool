@@ -1,0 +1,8 @@
+@media only screen and (max-width: 767px) {
+  .w-adjust .modal-body{
+    width: 320px;
+  }
+  .modal-backdrop {
+    background-color: #00000059 !important;
+  }
+}

@@ -1,0 +1,173 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+<!-- BEGIN: Content-->
+<div class="content-overlay"></div>
+<div class="header-navbar-shadow"></div>
+<div class="content-wrapper">
+    <div class="content-header row">
+        <div class="content-header-left col-md-9 col-12 mb-2">
+            <div class="row breadcrumbs-top">
+                <div class="col-12">
+                    <h2 class="content-header-title float-left mb-0">Library</h2>
+                    <div class="breadcrumb-wrapper col-12">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="{% url 'home' %}">Dashboard</a></li>
+                            <li class="breadcrumb-item active">{{ library.name }}</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="content-body">
+        {% include 'alert.html' %}
+        <section class="page-library-view">
+            <div class="row">
+                <!-- Information Start -->
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">Information</div>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-12 col-sm-9 col-md-6 col-lg-5">
+                                    <table>
+                                        <tr>
+                                            <td class="font-weight-bold">Full Name</td>
+                                            <td>{{ library.name }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="font-weight-bold">No. of Books</td>
+                                            <td>{{ no_of_books }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="font-weight-bold">Topics</td>
+                                            <td>
+                                                {% for topic in library.topics.all %}
+                                                    {{ topic.name }},
+                                                {% endfor %}
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </div>
+                                <div class="col-12">
+                                    {% if 'library.change_library' in user.get_all_permissions %}
+                                        <button type="button" class="btn btn-primary mr-1 mb-1" data-toggle="modal" data-target="#EditModal">Edit</button>
+                                    {% endif %}
+                                    {% if 'library.delete_library' in user.get_all_permissions %}
+                                        <a class="btn btn-outline-danger mr-1 mb-1" href="{% url 'library-delete' library.id %}"><i class="feather icon-trash-2"></i> Delete</a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Information End -->
+            </div>
+        </section>
+        <!-- Modal -->
+        <div class="modal fade" id="EditModal" tabindex="-1" role="dialog" aria-labelledby="EditModalTitle" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="EditModalTitle">Edit Library</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <form class="post-form form form-horizontal" method="POST" action="{% url 'library-update' library.id %}">
+                            {% csrf_token %}
+                            <div class="form-body">
+                                <div class="row">
+                                    <div class="col-12">
+                                        <div class="form-group row">
+                                            <div class="col-md-4"><span>Name</span></div>
+                                            <div class="col-md-8">
+                                                <input value="{{ library.name|default_if_none:'' }}" type="text" id="name" class="form-control" name="name" placeholder="Library Name" required data-validation-required-message="This name field is required">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-12">
+                                        <div class="form-group row">
+                                            <div class="col-md-4"><span>Topics</span></div>
+                                            <div class="col-md-8">
+                                                <select class="select2 form-control" id="topics" name="topics" required multiple="multiple">
+                                                    <!-- Topics dynamically populated -->
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-8 offset-md-4">
+                                        <button type="submit" class="btn btn-primary mr-1 mb-1">Submit</button>
+                                        <button type="reset" class="btn btn-outline-warning mr-1 mb-1">Reset</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Data Table -->
+        <section id="basic-datatable">
+            <div class="row">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h4 class="card-title">Images</h4>
+                            <div class="modal-primary mr-1 mb-1 d-inline-block">
+                                <button type="button" id="clean_button" disabled onclick="clean_button()" class="btn btn-primary mr-1 mb-1 float-right">Clean Images</button>
+                                {% if 'library.download_image' in user.get_all_permissions %}
+                                    <button type="button" id="download_button" disabled class="btn btn-primary mr-1 mb-1 float-right" data-toggle="modal" data-target="#DownloadModal">Download Images</button>
+                                {% endif %}
+                                <h7 id="selected_count" class="mr-1 mb-1 float-right" style="margin-top: 0.5em;">0 Selected</h7>
+                            </div>
+                        </div>
+                        <div class="card-content">
+                            <div class="card-body card-dashboard">
+                                <div class="table-responsive">
+                                    <table class="table zero-configuration" id="table_images">
+                                        <thead>
+                                            <tr>
+                                                <th><input class="checkbox select-row" type="checkbox" id="select_all" onclick="selectAll(this)"/></th>
+                                                <th>Name</th>
+                                                <th>Category</th>
+                                                <th>Tags</th>
+                                                <th>Uploaded At</th>
+                                                <th>Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for image in images %}
+                                            <tr>
+                                                <td><input class="checkbox select-row" type="checkbox" data-id="{{ image.id }}" onclick="enableDisable()"/></td>
+                                                <td>{{ image.name }}</td>
+                                                <td>{{ image.category.name }}</td>
+                                                <td>{{ image.tags }}</td>
+                                                <td>{{ image.uploaded_at }}</td>
+                                                <td>
+                                                    <div class="fonticon-wrap">
+                                                        <a class="btn btn-success btn-sm" href="{{ image.file.url }}" download>Download</a>
+                                                        <a class="btn btn-primary btn-sm" href="{% url 'image-view' image.id 'library' %}">View</a>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+</div>
+<script src="{% static 'js/scripts/library.js' %}"></script>
+{% endblock %}

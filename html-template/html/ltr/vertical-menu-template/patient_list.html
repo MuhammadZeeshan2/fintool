@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <!-- BEGIN: Content-->
+        <div class="content-overlay"></div>
+        <div class="header-navbar-shadow"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-md-9 col-12 mb-2">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <h2 class="content-header-title float-left mb-0">All Patients</h2>
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb">
+                                    <li class="breadcrumb-item"><a href="#">Home</a>
+                                    </li>
+                                    <li class="breadcrumb-item active">Patients
+                                    </li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="content-header-right text-md-right col-md-3 col-12 d-md-block d-none">
+                </div>
+            </div>
+            <div class="content-body">
+                {% include 'alert.html' %}
+                <!-- Zero configuration table -->
+                <section id="basic-datatable">
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h4 class="card-title">Patients</h4>
+                                </div>
+                                <div class="card-content">
+                                    <div class="card-body card-dashboard">
+                                        <p class="card-text">Patients Added;</p>
+                                        <div class="table-responsive">
+                                            <table class="table zero-configuration">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Name</th>
+                                                        <th>Email</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {% for patient in patients %}
+                                                    <tr>
+                                                        <th scope="row"><a href="{% url 'subject-detail' patient.id %}"> {{ patient.mrm }}</a></th>
+                                                        <td>{{ patient.email }}</td>
+                                                        <td>
+                                                        <!-- {% comment %} <a style="margin-right: 30px;" href="{% url 'edit-employee' emp.id %}">Edit</a>
+                                                        <a href="{% url 'delete-employee' emp.id %}">Remove</a> {% endcomment %} -->
+                                                        </td>
+                                                    </tr>
+                                                    {% endfor %}
+                                                </tbody>
+                                                <tfoot>
+                                                    <tr>
+                                                        <th>Name</th>
+                                                        <th>Email</th>
+                                                    </tr>
+                                                </tfoot>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                <!--/ Zero configuration table -->
+            </div>
+        </div>
+    <!-- END: Content-->
+{% endblock content %}

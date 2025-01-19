@@ -1,0 +1,203 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+    .img-container {
+        width: 500px;
+        height: 500px;
+        overflow: hidden;
+        position: relative;
+    }
+    #zoom-img {
+        width: 100%;
+        height: 100%;
+        transition: transform 0.25s ease;
+        cursor: pointer; /* Changed from zoom-in to pointer for general click indication */
+        z-index: 2;
+    }
+</style>
+    <!-- BEGIN: Content-->
+        <div class="content-overlay"></div>
+        <div class="header-navbar-shadow"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-md-9 col-12 mb-2">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            {% if type == 'project' %}
+                                <h2 class="content-header-title float-left mb-0">Library</h2>
+                            {% else %}
+                                <h2 class="content-header-title float-left mb-0">Patient</h2>
+                            {% endif %}
+                                <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb">
+                                    <li class="breadcrumb-item"><a href="{% url 'home' %}">Dashboard</a>
+                                    </li>
+                                    <li class="breadcrumb-item">Subjects</a></li>
+                                    <li class="breadcrumb-item"><a href="{% url 'subject-detail' image.patient.id %}">{{image.patient.mrm}}</a></li>
+                                    <li class="breadcrumb-item">Images</a>
+                                    </li>
+                                    <li class="breadcrumb-item active">{{image.media_file.name}}
+                                    </li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="content-body">
+                {% include 'alert.html' %}
+                {% include 'image_adjustment.html' %}
+                <section class="page-users-view">
+                    <div class="row">
+                        <!-- account start -->
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <div class="card-title">Image</div>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row" id="image-container" style="display: flex; justify-content: center;">
+                                        <img class="card-img-top img-fluid" id="zoom-img" src="{{ image.media_file_anonymized.url }}" style="max-width: 750px; max-height: 750px;">
+                                    </div>
+                                    <div class="row">
+                                        <div class="card-body">
+                                            <h5>{{ image.image_type }}</h5>
+                                            <p class="card-text  mb-0">Labelled: {{image.labelled}}</p>
+                                            <div class="card-btns d-flex justify-content-between mt-2">
+                                                {% if 'medical_research.download_image' in user.get_all_permissions %}
+                                                    <a href="javascript:void(0);" class="btn gradient-light-primary text-white" data-toggle="modal" data-target="#DownloadModal">Download</a>
+                                                {% endif %}
+                                                {% if image.labelled and 'medical_research.relabel_document' not in user.get_all_permissions %}
+                                                    <a style="pointer-events: none" class="btn btn-outline-primary">Already Labelled</a>
+                                                {% elif 'medical_research.relabel_document' in user.get_all_permissions or 'medical_research.label_document' in user.get_all_permissions %}
+                                                    <a href="{% url 'image-label' image.id %}" class="btn btn-outline-primary">Label</a>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- account end -->
+                    </div>
+                </section>
+
+                <!--/ Zero configuration table -->
+            </div>
+            <div class="modal fade" id="DownloadModal" tabindex="-1" role="dialog" aria-labelledby="InsertModelTitle" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered modal-dialog-centered modal-dialog-scrollable" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="InsertModelTitle">Download Images</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="form-body">
+                                <div class="row">
+                                    <div class="col-12 d-flex">
+                                        <input type="text" id="download_for" value="{{download_for}}" hidden>
+                                        <button id="raw" class="btn btn-primary mr-1 mb-1" onclick="download_images(this);">Raw</button>
+                                        {% if image.anonymized%}
+                                            <button id="anonymized" class="btn btn-primary mr-1 mb-1" onclick="download_images(this);">Anonymized</button>
+                                        {% else %}
+                                            <button id="anonymized" class="btn btn-primary mr-1 mb-1" disabled>Anonymized</button>
+                                        {% endif %}
+                                        {% if image.labelled %}
+                                            <button id="labelled" class="btn btn-primary mr-1 mb-1" onclick="download_images(this);">Labelled</button>
+                                        {% else %}
+                                            <button id="labelled" class="btn btn-primary mr-1 mb-1" disabled>Labelled</button>
+                                        {% endif %}
+                                        <button id="all" class="btn btn-primary mr-1 mb-1" onclick="download_images(this);">All</button>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-3 d-flex">
+                                        <span>Label Format:</span>
+                                    </div>
+                                    <div class="col-3 d-flex">
+                                        <fieldset>
+                                            <div class="vs-radio-con vs-radio-primary">
+                                                <input type="radio" name="format" value="text" checked>
+                                                <span class="vs-radio vs-radio-sm">
+                                                    <span class="vs-radio--border"></span>
+                                                    <span class="vs-radio--circle"></span>
+                                                </span>
+                                                <span class="">Text</span>
+                                            </div>
+                                        </fieldset>
+                                    </div>
+                                    <div class="col-3 d-flex">
+                                        <fieldset>
+                                            <div class="vs-radio-con vs-radio-primary">
+                                                <input type="radio" name="format" value="csv">
+                                                <span class="vs-radio vs-radio-sm">
+                                                    <span class="vs-radio--border"></span>
+                                                    <span class="vs-radio--circle"></span>
+                                                </span>
+                                                <span class="">Csv</span>
+                                            </div>
+                                        </fieldset>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- <div class="modal-footer">
+                            <button type="button" class="btn btn-primary" data-dismiss="modal">Accept</button>
+                        </div> -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    <!-- END: Content-->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.7.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip-utils/0.1.0/jszip-utils.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.2/FileSaver.min.js"></script>
+
+    <script>
+        function download_images(obj){
+            var id = "{{image.id}}"
+            var type = obj.getAttribute('id');
+            var selectedIds = [id];
+            var selectedFormat = document.querySelector('input[name="format"]:checked').value;
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', '/download/', true);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            xhr.setRequestHeader('X-CSRFToken', '{{ csrf_token }}');
+            xhr.responseType = 'blob';
+            xhr.onload = function() {
+              if (this.status == 200) {
+                var blob = this.response;
+                var contentDisposition = xhr.getResponseHeader('Content-Disposition');
+                var filename = contentDisposition.split(';')[1].split('=')[1].trim().replace(/"/g, '');
+                var a = document.createElement('a');
+                var url = window.URL.createObjectURL(blob);
+                a.href = url;
+                a.download = filename;
+                a.click();
+                window.URL.revokeObjectURL(url);
+              }
+            };
+            xhr.send(JSON.stringify({ 'image_ids': selectedIds, 'type': type, 'format': selectedFormat, 'download_for': "{{download_for}}"}));
+        }
+    </script>
+    <script>
+        let isZoomed = false; // This flag will track whether the image is zoomed in or not.
+        document.getElementById('zoom-img').addEventListener('click', function(event) {
+            const { left, top, width, height } = this.getBoundingClientRect();
+            const x = (event.clientX - left) / width * 100;
+            const y = (event.clientY - top) / height * 100;
+            this.style.transformOrigin = `${x}% ${y}%`;
+
+            if (!isZoomed) {
+                this.style.transform = "scale(2)";
+                isZoomed = true;
+            } else {
+                this.style.transform = "scale(1)";
+                isZoomed = false;
+            }
+        });
+    </script>
+{% endblock content %}

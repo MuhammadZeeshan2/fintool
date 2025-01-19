@@ -1,0 +1,132 @@
+<div class="modal fade" id="DownloadModal" tabindex="-1" role="dialog" aria-labelledby="InsertModelTitle" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-dialog-centered modal-dialog-scrollable" role="document">
+      <div class="modal-content">
+          <div class="modal-header">
+              <h5 class="modal-title" id="InsertModelTitle">Download Images</h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+              </button>
+          </div>
+          <div class="modal-body">
+              <div class="form-body">
+                  <div class="row">
+                      <div class="col-12 d-flex">
+                          <input type="text" id="download_for" value="{{download_for}}" hidden>
+                          <button id="raw" class="btn btn-primary mr-1 mb-1" onclick="download_images(this);">Raw</button>
+                          <button id="anonymized" class="btn btn-primary mr-1 mb-1" onclick="download_images(this);">Anonymized</button>
+                          <button id="labelled" class="btn btn-primary mr-1 mb-1" onclick="download_images(this);">Labelled</button>
+                          <button id="all" class="btn btn-primary mr-1 mb-1" onclick="download_images(this);">All</button>
+                      </div>
+                  </div>
+                  <div class="row">
+                      <div class="col-3 d-flex">
+                          <span>Label Format:</span>
+                      </div>
+                      <div class="col-3 d-flex">
+                          <fieldset>
+                              <div class="vs-radio-con vs-radio-primary">
+                                  <input type="radio" name="format" value="text" checked>
+                                  <span class="vs-radio vs-radio-sm">
+                                      <span class="vs-radio--border"></span>
+                                      <span class="vs-radio--circle"></span>
+                                  </span>
+                                  <span class="">Text</span>
+                              </div>
+                          </fieldset>
+                      </div>
+                      <div class="col-3 d-flex">
+                          <fieldset>
+                              <div class="vs-radio-con vs-radio-primary">
+                                  <input type="radio" name="format" value="csv">
+                                  <span class="vs-radio vs-radio-sm">
+                                      <span class="vs-radio--border"></span>
+                                      <span class="vs-radio--circle"></span>
+                                  </span>
+                                  <span class="">Csv</span>
+                              </div>
+                          </fieldset>
+                      </div>
+                  </div>
+                  <div class="row">
+                      <div class="col-3 d-flex">
+                          <span>Image Format:</span>
+                      </div>
+                      <div class="col-3 d-flex">
+                          <fieldset>
+                              <div class="vs-radio-con vs-radio-primary">
+                                  <input type="radio" name="image_format" value="dcm" checked>
+                                  <span class="vs-radio vs-radio-sm">
+                                      <span class="vs-radio--border"></span>
+                                      <span class="vs-radio--circle"></span>
+                                  </span>
+                                  <span class="">Dicom</span>
+                              </div>
+                          </fieldset>
+                      </div>
+                      <div class="col-3 d-flex">
+                          <fieldset>
+                              <div class="vs-radio-con vs-radio-primary">
+                                  <input type="radio" name="image_format" value="png">
+                                  <span class="vs-radio vs-radio-sm">
+                                      <span class="vs-radio--border"></span>
+                                      <span class="vs-radio--circle"></span>
+                                  </span>
+                                  <span class="">Png</span>
+                              </div>
+                          </fieldset>
+                      </div>
+                      <div class="col-3 d-flex">
+                          <fieldset>
+                              <div class="vs-radio-con vs-radio-primary">
+                                  <input type="radio" name="image_format" value="jpg">
+                                  <span class="vs-radio vs-radio-sm">
+                                      <span class="vs-radio--border"></span>
+                                      <span class="vs-radio--circle"></span>
+                                  </span>
+                                  <span class="">Jpg</span>
+                              </div>
+                          </fieldset>
+                      </div>
+                  </div>
+              </div>
+          </div>
+          <!-- <div class="modal-footer">
+              <button type="button" class="btn btn-primary" data-dismiss="modal">Accept</button>
+          </div> -->
+      </div>
+  </div>
+</div>
+<script>
+  function download_images(obj){
+    var checkBoxes = document.querySelectorAll('input[id="123"]');
+    var type = obj.getAttribute('id');
+    var selectedIds = [];
+    var selectedFormat = document.querySelector('input[name="format"]:checked').value;
+    var selectedImageFormat = document.querySelector('input[name="image_format"]:checked').value;
+    for (var i = 0; i < checkBoxes.length; ++i) {
+      if(checkBoxes[i].checked == true){
+        var image_id = checkBoxes[i].getAttribute("data-id");
+        selectedIds.push(image_id);
+      }
+    }
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', '/download/', true);
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    xhr.setRequestHeader('X-CSRFToken', '{{ csrf_token }}');
+    xhr.responseType = 'blob';
+    xhr.onload = function() {
+      if (this.status == 200) {
+        var blob = this.response;
+        var contentDisposition = xhr.getResponseHeader('Content-Disposition');
+        var filename = contentDisposition.split(';')[1].split('=')[1].trim().replace(/"/g, '');
+        var a = document.createElement('a');
+        var url = window.URL.createObjectURL(blob);
+        a.href = url;
+        a.download = filename; // Use the extracted filename
+        a.click();
+        window.URL.revokeObjectURL(url);
+      }
+    };
+    xhr.send(JSON.stringify({ 'image_ids': selectedIds, 'type': type, 'format': selectedFormat, 'image_format': selectedImageFormat, 'download_for': "{{download_for}}" }));
+  }
+</script>

@@ -1,0 +1,42 @@
+{% extends 'registration/base.html' %} 
+<!-- Load an icon library to show a hamburger menu (bars) on small screens -->
+<nav>
+  <a href="#first"><i class="far fa-user"></i></a>
+  <a href="#second"><i class="fas fa-briefcase"></i></a>
+  <a href="#third"><i class="far fa-file"></i></a>
+  <a href="#fourth"><i class="far fa-address-card"></i></a>
+</nav>
+ 
+<div class= 'container'> 
+ <section id= 'first'>
+   <h1>First</h1>
+ </section>
+ 
+ <section id= 'second'>
+   <h1>Second</h1>
+ </section>
+ 
+<section id= 'third'>
+  <h1>Third</h1>
+ </section>
+ 
+<section id= 'fourth'>
+  <h1>Fourth</h1>
+ </section>
+</div>
+{% block content %}
+<section>
+  <div class="container">
+    <div class="row">
+      <div class="col-md-12 col-centered">
+        <h1 class="mt-5 mb-3">Login Success!</h1>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-12 col-centered mt-3">
+        <a href="{% url 'logout' %}" class="btn btn-primary">Logout</a>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %} 

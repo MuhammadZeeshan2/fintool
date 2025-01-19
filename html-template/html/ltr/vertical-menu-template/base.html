@@ -1,0 +1,152 @@
+{% load static %}
+<!DOCTYPE html>
+<html class="loading" lang="en" data-textdirection="ltr">
+<!-- BEGIN: Head-->
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0, minimal-ui">
+    <title>DREgine: medicDX</title>
+    <link rel="apple-touch-icon" href="{% static 'images/ico/apple-icon-120.png' %}">
+    <link rel="shortcut icon" type="image/x-icon" href="{% static 'images/ico/logo.png' %}">
+    <link href="https://fonts.googleapis.com/css?family=Montserrat:300,400,500,600" rel="stylesheet">
+
+    <!-- BEGIN: Vendor CSS-->
+    <link rel="stylesheet" type="text/css" href="{% static 'vendors/css/pickers/pickadate/pickadate.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'vendors/css/extensions/nouislider.min.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'vendors/css/vendors.min.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'vendors/css/ui/prism.min.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'vendors/css/file-uploaders/dropzone.min.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'vendors/css/forms/select/select2.min.css' %}">
+    <!-- END: Vendor CSS-->
+
+    <!-- BEGIN: Theme CSS-->
+    <link rel="stylesheet" type="text/css" href="{% static 'css/bootstrap.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/bootstrap-extended.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/colors.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/components.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/themes/dark-layout.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/themes/semi-dark-layout.css' %}">
+    
+    <!-- BEGIN: Page CSS-->
+    <link rel="stylesheet" type="text/css" href="{% static 'css/core/menu/menu-types/vertical-menu.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/core/colors/palette-gradient.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/plugins/forms/validation/form-validation.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/plugins/file-uploaders/dropzone.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/plugins/animate/animate.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/pages/app-user.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/plugins/extensions/noui-slider.min.css' %}">
+    <!-- END: Page CSS-->
+
+    <!-- BEGIN: Custom CSS-->
+    <style>
+        .dataTables_filter{
+            float: right;
+        }
+    </style>
+    <!-- END: Custom CSS-->
+</head>
+<!-- END: Head-->
+<body class="vertical-layout vertical-menu-modern 2-columns  navbar-floating footer-static  " data-open="click" data-menu="vertical-menu-modern" data-col="2-columns">
+    <nav class="header-navbar navbar-expand-lg navbar navbar-with-menu floating-nav navbar-light navbar-shadow">
+        <div class="navbar-wrapper">
+            <div class="navbar-container content">
+                <div class="navbar-collapse" id="navbar-mobile">
+                    <div class="mr-auto float-left bookmark-wrapper d-flex align-items-center">
+                    </div>
+                    <ul class="nav navbar-nav float-right">
+                      
+                        <li class="nav-item d-none d-lg-block"><a class="nav-link nav-link-expand"><i class="ficon feather icon-maximize"></i></a></li>
+                        
+                        
+                        <li class="dropdown dropdown-user nav-item"><a class="dropdown-toggle nav-link dropdown-user-link" href="#" data-toggle="dropdown">
+                                <div class="user-nav d-sm-flex d-none"><span class="user-name text-bold-600">{{ user.username }}</span>
+                                    {% if user.is_superuser %}
+                                        <span class="user-status">admin</span>
+                                    {% else %}
+                                        <span class="user-status">{{ user.groups.all.first }}</span>
+                                    {% endif %}
+                                </div>
+                            </a>
+                            <div class="dropdown-menu dropdown-menu-right">
+                                <a class="dropdown-item" href="{% url 'logout' %}"><i class="feather icon-power"></i> Logout</a>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </nav>
+    
+    <!-- BEGIN: Main Menu-->
+    
+    <!-- END: Main Menu-->
+    <div class="app-content content">
+        {% block content %}
+        {% endblock content %}
+    </div>
+ 
+    <div class="sidenav-overlay"></div>
+    <div class="drag-target"></div>
+
+    <!-- BEGIN: Footer-->
+    <div class="" style="margin-left: 40px; margin-right: 30px;">
+        <div class="content-wrapper">
+            <div class="content-body">
+                <section id="basic-datatable">
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-content">
+                                    <p style="color: red; margin-top: 14px; margin-left: 10px;">System is available till {{request.activate_until}}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+    <!-- END: Footer-->
+
+
+    <!-- BEGIN: Vendor JS-->
+    <script src="{% static 'vendors/js/vendors.min.js' %}"></script>
+    <!-- BEGIN Vendor JS-->
+
+    <!-- BEGIN: Page Vendor JS-->
+    <script src="{% static 'vendors/js/extensions/dropzone.min.js' %}"></script>
+    <script src="{% static 'vendors/js/ui/prism.min.js' %}"></script>
+    <script src="{% static 'vendors/js/tables/datatable/datatables.min.js' %}"></script>
+    <script src="{% static 'vendors/js/tables/datatable/datatables.bootstrap4.min.js' %}"></script>
+    <script src="{% static 'vendors/js/extensions/wNumb.js' %}"></script>
+    <script src="{% static 'vendors/js/extensions/nouislider.min.js' %}"></script>
+    <!-- END: Page Vendor JS-->
+
+    <!-- BEGIN: Theme JS-->
+    <script src="{% static 'vendors/js/pickers/pickadate/picker.js' %}"></script>
+    <script src="{% static 'vendors/js/pickers/pickadate/picker.date.js' %}"></script>
+    <script src="{% static 'vendors/js/pickers/pickadate/picker.time.js' %}"></script>
+    <script src="{% static 'vendors/js/pickers/pickadate/legacy.js' %}"></script>
+    <script src="{% static 'vendors/js/forms/select/select2.full.min.js' %}"></script>
+    <script src="{% static 'js/core/app-menu.js' %}"></script>
+    <script src="{% static 'js/core/app.js' %}"></script>
+    <script src="{% static 'js/scripts/components.js' %}"></script>
+    <!-- END: Theme JS-->
+
+    <!-- BEGIN: Page JS-->
+    <script src="{% static 'js/scripts/forms/form-tooltip-valid.js' %}"></script>
+    <script src="{% static 'js/scripts/extensions/dropzone.js' %}"></script>
+    <script src="{% static 'js/scripts/datatables/datatable.js' %}"></script>
+    <script src="{% static 'js/scripts/pickers/dateTime/pick-a-datetime.js' %}"></script>
+    <script src="{% static 'js/scripts/forms/select/form-select2.js' %}"></script>
+    <script src="{% static 'js/scripts/pages/app-ecommerce-shop.js' %}"></script>
+    <!-- END: Page JS-->
+    <script type="text/javascript">
+        $('#alert_container').delay(3000).fadeOut('slow');
+    </script>
+</body>
+<!-- END: Body-->
+
+</html>
