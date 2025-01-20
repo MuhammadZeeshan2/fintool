@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatbot</title>
+    <style>
+        #chat-output {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            max-height: 300px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            background-color: #f9f9f9;
+        }
+        #user-input {
+            width: 80%;
+            padding: 10px;
+            margin-right: 10px;
+        }
+        button {
+            padding: 10px 20px;
+            cursor: pointer;
+        }
+    </style>
+    
+</head>
+<body>
+    <h1>Chat with the Bot</h1>
+    <div>
+        <input type="text" id="user-input" placeholder="Ask a question" />
+        <button onclick="sendMessage()">Send</button>
+        <div id="chat-output"></div>
+    </div>
+    <form id="chatbot-form" enctype="multipart/form-data">
+        <input type="file" name="files" multiple>
+        <input type="text" name="question" placeholder="Ask your question">
+        <button type="submit">Submit</button>
+    </form>
+    
+    
+</body>
+</html>
+<script>
+    document.getElementById('chatbot-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const formData = new FormData(e.target);
+    
+        const response = await fetch('/api/chatbot/', {
+            method: 'POST',
+            body: formData
+        });
+    
+        const data = await response.json();
+        console.log(data);
+    });
+    
+    
+    
+</script>
